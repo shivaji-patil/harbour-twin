@@ -1,0 +1,29 @@
+{
+ "vertical": "WGS 84 ellipsoidal height (EPSG:4979), int16 decimetres",
+ "sources": "NRCan HRDEM lidar DTM (CGVD2013) where available, else Copernicus GLO-30 (EGM2008); sea filled with the geoid (mean sea level)",
+ "grids": {
+  "context": {
+   "file": "terrain_context.bin",
+   "west": -123.33,
+   "south": 49.219856270212006,
+   "east": -122.9297912426256,
+   "north": 49.42,
+   "width": 1452,
+   "height": 1114,
+   "scale": 0.1
+  },
+  "core": {
+   "file": "terrain_core.bin",
+   "west": -123.15,
+   "south": 49.27196155228171,
+   "east": -123.07499892450522,
+   "north": 49.318,
+   "width": 1089,
+   "height": 1025,
+   "scale": 0.1
+  }
+ },
+ "water_fraction_core": 0.44354140070326326,
+ "geoid_cgvd2013_to_wgs84": -19.11612617969513,
+ "geoid_egm2008_to_wgs84": -19.05104120369909
+}

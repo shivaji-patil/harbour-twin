@@ -1,0 +1,87 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/processing/v1.2.0/schema.json"
+  ],
+  "id": "ais-tracks",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -122.9,
+          49.2
+        ],
+        [
+          -122.9,
+          49.36
+        ],
+        [
+          -123.4,
+          49.36
+        ],
+        [
+          -123.4,
+          49.2
+        ],
+        [
+          -122.9,
+          49.2
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -123.4,
+    49.2,
+    -122.9,
+    49.36
+  ],
+  "properties": {
+    "title": "AIS vessel tracks (aisstream.io), cleaned",
+    "processing:software": {
+      "harbour-twin": "0.1.0"
+    },
+    "processing:lineage": "",
+    "datetime": "2026-10-21T19:55:03.815590Z"
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    }
+  ],
+  "assets": {
+    "tracks": {
+      "href": "../../ais_tracks.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Tracks (GeoParquet)",
+      "file:size": 33239,
+      "file:checksum": "12204d733755854d1e200c83f397b1eb914d5ba072a009bca2a03f2dc73293ed2586",
+      "roles": [
+        "data"
+      ]
+    },
+    "positions": {
+      "href": "../../ais_positions.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Positions (GeoParquet)",
+      "file:size": 73386,
+      "file:checksum": "122033783e68508b8f08989cdd0b8572008e6ca3cb1bcb5aa1c2004a415209d57222",
+      "roles": [
+        "data"
+      ]
+    }
+  }
+}

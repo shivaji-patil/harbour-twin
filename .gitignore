@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+node_modules/
+data/cache/
+# Large products: rebuilt by `make data` and by CI from upstream STAC sources
+data/*/*.tif
+data/*/offline/dted/
+data/*/offline/*.gpkg
+application/

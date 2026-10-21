@@ -1,0 +1,110 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/processing/v1.2.0/schema.json"
+  ],
+  "id": "buildings-3d",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -123.075,
+          49.272
+        ],
+        [
+          -123.075,
+          49.318
+        ],
+        [
+          -123.15,
+          49.318
+        ],
+        [
+          -123.15,
+          49.272
+        ],
+        [
+          -123.075,
+          49.272
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -123.15,
+    49.272,
+    -123.075,
+    49.318
+  ],
+  "properties": {
+    "title": "Buildings with lidar-measured heights: GeoParquet + 3D Tiles 1.1",
+    "processing:software": {
+      "harbour-twin": "0.1.0"
+    },
+    "processing:lineage": "Overture Maps 2026-10-21.0 footprints (GeoParquet, bbox-filtered in DuckDB); height = p90(DSM) - p10(ground ring DTM)",
+    "buildings": 5848,
+    "by_height_source": {
+      "lidar": 5774,
+      "default": 31,
+      "overture": 27,
+      "floors": 16
+    },
+    "height_flags": 717,
+    "overture_minus_lidar_height": {
+      "n": 2422,
+      "bias_m": -8.052151679992676,
+      "std_m": 15.558297157287598,
+      "rmse_m": 17.518497467041016,
+      "mae_m": 8.658637046813965,
+      "nmad_m": 3.4139416217803955,
+      "le90_m": 19.06060218811035,
+      "le95_m": 37.253807067871094
+    },
+    "overture_minus_lidar_by_source": {
+      "City of Vancouver": -1.19,
+      "Microsoft ML Buildings": -2.12,
+      "OpenStreetMap": -3.98
+    },
+    "tiles": 69,
+    "datetime": "2026-10-21T19:55:03.815590Z"
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    }
+  ],
+  "assets": {
+    "geoparquet": {
+      "href": "../../buildings.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Buildings (GeoParquet)",
+      "file:size": 1243562,
+      "file:checksum": "1220e05d5535e11f48bc9f31c8d0a492c1f4c235039b1750ffab75faf737fea63192",
+      "roles": [
+        "data"
+      ]
+    },
+    "3dtiles": {
+      "href": "../../../../web/data/vancouver/buildings/tileset.json",
+      "type": "application/json",
+      "title": "OGC 3D Tiles 1.1 tileset (EXT_mesh_features + EXT_structural_metadata)",
+      "roles": [
+        "data",
+        "visual"
+      ]
+    }
+  }
+}

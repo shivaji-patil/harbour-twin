@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harbour Twin · Vancouver</title>
+  <meta name="description" content="3D harbour digital twin: lidar-measured buildings as 3D Tiles 1.1, datum-checked terrain, live-recorded AIS, CHS tides and a connected coastal-flood planner.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/Cesium.js"></script>
+</head>
+<body>
+  <div id="globe"></div>
+
+  <aside id="panel" aria-label="Controls">
+    <header>
+      <h1>Harbour Twin <span id="aoi-name">Vancouver</span></h1>
+      <p class="sub">Lidar city model, vessel traffic, tides and a flood planner. Built from public data, checked automatically.</p>
+    </header>
+
+    <section>
+      <h2>Layers</h2>
+      <label><input type="checkbox" id="lyr-buildings" checked> Buildings <small>3D Tiles 1.1</small></label>
+      <label><input type="checkbox" id="lyr-ais" checked> Vessels <small>AIS replay</small></label>
+      <label><input type="checkbox" id="lyr-s2" checked> Sentinel-2 imagery <small id="s2-date"></small></label>
+      <label><input type="checkbox" id="lyr-radar"> Weather radar <small>ECCC GeoMet, live</small></label>
+    </section>
+
+    <section>
+      <h2>Colour buildings by</h2>
+      <div class="seg" role="radiogroup" id="style-mode">
+        <button data-mode="height" class="on">Height</button>
+        <button data-mode="source">Height source</button>
+        <button data-mode="flag">QC flags</button>
+        <button data-mode="flood">Flood risk</button>
+      </div>
+      <div id="legend" class="legend"></div>
+    </section>
+
+    <section>
+      <h2>Coastal flood planner</h2>
+      <div class="level-row">
+        <input type="range" id="level" min="0" max="6" step="0.01" value="2.87" aria-label="Water level">
+        <output id="level-out">2.87 m</output>
+      </div>
+      <p class="hint">Still-water level, metres above CGVD2013. The sea only reaches ground connected to it (priority-flood), not every cell below the line.</p>
+      <div id="presets" class="presets"></div>
+      <label><input type="checkbox" id="follow-tide"> Follow observed tide with the replay clock</label>
+      <dl class="stats">
+        <div><dt>Buildings reached</dt><dd id="st-bldg">–</dd></div>
+        <div><dt>Land flooded</dt><dd id="st-area">–</dd></div>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Vessels</h2>
+      <div id="ais-legend" class="legend"></div>
+      <p class="hint" id="ais-note"></p>
+    </section>
+
+    <section>
+      <h2>Weather now</h2>
+      <p id="wx" class="wx">Loading…</p>
+    </section>
+
+    <section>
+      <h2>Data quality</h2>
+      <dl class="stats" id="qc"></dl>
+      <p class="hint"><a href="https://github.com/" id="qc-link" target="_blank" rel="noopener">Full QC report</a> · <a href="#" id="about-link">How this was built</a></p>
+    </section>
+  </aside>
+
+  <aside id="info" hidden aria-live="polite">
+    <button id="info-close" aria-label="Close">×</button>
+    <div id="info-body"></div>
+  </aside>
+
+  <dialog id="about">
+    <h2>How this was built</h2>
+    <ol>
+      <li><b>Discover</b> through STAC: NRCan HRDEM lidar and MRDEM, Copernicus GLO-30 and Sentinel-2 on Earth Search, Overture Maps buildings.</li>
+      <li><b>Read only the window we need</b> from COGs over HTTP range requests and GeoParquet through DuckDB. Nothing is bulk-downloaded.</li>
+      <li><b>Align vertical datums</b> with explicit PROJ pipelines: EGM2008, CGVD2013 (CGG2013a with the NAD83(CSRS) frame), WGS 84 for Cesium, and EGM96 for DTED.</li>
+      <li><b>QC</b> every DEM against lidar (bias, RMSE, NMAD, LE90, by slope) and gate it against product specs.</li>
+      <li><b>Measure building heights</b> from lidar (DSM − DTM), flag disagreements with Overture, and write OGC 3D Tiles 1.1 with per-building metadata.</li>
+      <li><b>Integrate live feeds</b>: AIS from aisstream.io, tides from CHS IWLS, weather from ECCC and Open-Meteo.</li>
+      <li><b>Package for offline use</b>: DTED Level 2 and a GeoPackage, all published as a STAC catalog.</li>
+    </ol>
+    <p class="hint">Data: NRCan (OGL-Canada), Copernicus DEM © DLR/Airbus, Sentinel-2 (ESA Copernicus), Overture Maps (ODbL/CDLA), OpenStreetMap contributors, aisstream.io, DFO-CHS, ECCC, Open-Meteo, CARTO.</p>
+    <form method="dialog"><button>Close</button></form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

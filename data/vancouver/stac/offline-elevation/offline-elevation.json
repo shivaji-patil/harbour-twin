@@ -1,0 +1,144 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/processing/v1.2.0/schema.json"
+  ],
+  "id": "offline-elevation",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -123.0,
+          49.0
+        ],
+        [
+          -123.0,
+          50.0
+        ],
+        [
+          -124.0,
+          50.0
+        ],
+        [
+          -124.0,
+          49.0
+        ],
+        [
+          -123.0,
+          49.0
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -124,
+    49,
+    -123,
+    50
+  ],
+  "properties": {
+    "title": "DTED Level 2 + GeoPackage for offline platforms",
+    "processing:software": {
+      "harbour-twin": "0.1.0"
+    },
+    "processing:lineage": "",
+    "vertical_datum": "EGM96 (EPSG:5773)",
+    "dted": [
+      {
+        "file": "dted/w124/n49.dt2",
+        "cell": [
+          -124,
+          49
+        ],
+        "posting_arcsec": [
+          1,
+          1
+        ],
+        "shape": [
+          3601,
+          3601
+        ],
+        "vertical_datum": "EGM96",
+        "source": [
+          "Copernicus_DSM_COG_10_N50_00_W124_00_DEM",
+          "Copernicus_DSM_COG_10_N50_00_W123_00_DEM",
+          "Copernicus_DSM_COG_10_N49_00_W124_00_DEM",
+          "Copernicus_DSM_COG_10_N49_00_W123_00_DEM",
+          "Copernicus_DSM_COG_10_N48_00_W124_00_DEM",
+          "Copernicus_DSM_COG_10_N48_00_W123_00_DEM"
+        ],
+        "voids_filled": 0,
+        "min_m": -19,
+        "max_m": 2641,
+        "header": {
+          "DTED_VerticalAccuracy_UHL": "0007",
+          "DTED_VerticalAccuracy_ACC": "0007",
+          "DTED_SecurityCode_UHL": "U",
+          "DTED_SecurityCode_DSI": "U",
+          "DTED_UniqueRef_UHL": "",
+          "DTED_UniqueRef_DSI": "000000000000000",
+          "DTED_DataEdition": "01",
+          "DTED_MatchMergeVersion": "A",
+          "DTED_MaintenanceDate": "0000",
+          "DTED_MatchMergeDate": "0000",
+          "DTED_MaintenanceDescription": "0000",
+          "DTED_Producer": "HRBRTWIN",
+          "DTED_VerticalDatum": "MSL",
+          "DTED_HorizontalDatum": "WGS84",
+          "DTED_DigitizingSystem": "COPDEMGLO30",
+          "DTED_CompilationDate": "2610",
+          "DTED_HorizontalAccuracy": "NA",
+          "DTED_RelHorizontalAccuracy": "NA",
+          "DTED_RelVerticalAccuracy": "NA",
+          "DTED_OriginLatitude": "0490000N",
+          "DTED_OriginLongitude": "1240000W",
+          "DTED_NimaDesignator": "DTED2",
+          "DTED_PartialCellIndicator": "00",
+          "DTED_SecurityControl": "",
+          "DTED_SecurityHandling": ""
+        }
+      }
+    ],
+    "datetime": "2026-10-21T19:55:03.815590Z"
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    }
+  ],
+  "assets": {
+    "dted_w124_n49.dt2": {
+      "href": "../../offline/dted/w124/n49.dt2",
+      "type": "application/octet-stream",
+      "title": "DTED Level 2",
+      "file:size": 25981042,
+      "file:checksum": "1220f1730af5e61c5b6dc981aaa0a94ffb24d4241a6f2d00beebef569017bb6e683f",
+      "roles": [
+        "data"
+      ]
+    },
+    "geopackage": {
+      "href": "../../offline/vancouver_offline.gpkg",
+      "type": "application/geopackage+sqlite3",
+      "title": "GeoPackage",
+      "file:size": 7151616,
+      "file:checksum": "12204f4c9946383dada4a23152b437826c4abe89e7ba301903a804424ed144bf4991",
+      "roles": [
+        "data"
+      ]
+    }
+  }
+}

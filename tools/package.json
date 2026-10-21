@@ -1,0 +1,12 @@
+{
+  "name": "harbour-twin-tools",
+  "private": true,
+  "description": "Validation tooling for harbour-twin outputs",
+  "type": "module",
+  "scripts": {
+    "validate": "node validate_glb.mjs ../web/data/vancouver/buildings/tiles"
+  },
+  "devDependencies": {
+    "gltf-validator": "2.0.0-dev.3.10"
+  }
+}

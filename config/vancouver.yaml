@@ -1,0 +1,18 @@
+# Vancouver harbour twin: downtown peninsula, Coal Harbour, Burrard Inlet, Lonsdale.
+name: Vancouver Harbour, BC
+bbox: [-123.150, 49.272, -123.075, 49.318]          # core: lidar buildings + 5 m terrain
+terrain_bbox: [-123.330, 49.220, -122.930, 49.420]  # context: North Shore mountains, English Bay
+ais_bbox: [-123.400, 49.200, -122.900, 49.360]      # Burrard Inlet + English Bay anchorages
+dem_res_m: 2.0
+terrain_res_m: 5.0
+overture_release: "2026-10-21.0"
+specs:
+  # Copernicus DEM product handbook: absolute vertical accuracy < 4 m LE90.
+  - {name: "Copernicus DEM GLO-30 spec", le90_m: 4.0, max_bias_m: 1.0, max_void_fraction: 0.01}
+  # MIL-PRF-89020B, DTED Level 2: absolute vertical accuracy 18 m LE90.
+  - {name: "DTED Level 2 (MIL-PRF-89020B)", le90_m: 18.0, max_bias_m: 5.0, max_void_fraction: 0.0}
+sea_points:
+  - [English Bay, -123.200, 49.290]
+  - [Burrard Inlet, -123.100, 49.302]
+  - [Strait of Georgia, -123.300, 49.250]
+tide_station: "07735"  # CHS Vancouver

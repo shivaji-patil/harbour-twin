@@ -1,0 +1,81 @@
+# Rebuild the twin from upstream STAC sources, gate it on QC and tests, publish the viewer.
+name: build-twin
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 7 * * 1"   # weekly: pick up new Overture/NRCan/Sentinel-2 data and CHS tides
+  workflow_dispatch:
+    inputs:
+      ais_minutes:
+        description: "Minutes of live AIS to record before building (0 = keep committed capture)"
+        default: "0"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      AOI: vancouver
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -q -e '.[dev]' jsonschema
+          cd tools && npm ci --ignore-scripts
+
+      - name: Record AIS (optional)
+        if: ${{ github.event.inputs.ais_minutes != '' && github.event.inputs.ais_minutes != '0' }}
+        env:
+          AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
+        run: .venv/bin/twin $AOI record --minutes ${{ github.event.inputs.ais_minutes }}
+
+      - name: Build products
+        run: .venv/bin/twin $AOI lidar qc terrain imagery buildings ais tides package catalog
+
+      - name: Unit + acceptance tests
+        run: .venv/bin/pytest -q
+
+      - name: Validate 3D Tiles content (Khronos glTF validator)
+        run: node tools/validate_glb.mjs web/data/$AOI/buildings/tiles
+
+      - name: QC report to job summary
+        run: cat data/$AOI/QC_REPORT.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: products-${{ env.AOI }}
+          path: |
+            data/${{ env.AOI }}
+            !data/${{ env.AOI }}/*.tif
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: web
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4

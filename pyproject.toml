@@ -1,0 +1,22 @@
+[project]
+name = "harbour-twin"
+version = "0.1.0"
+description = "Cloud-native 3D harbour digital twin: STAC-sourced elevation with datum-aware QC, lidar-derived 3D Tiles buildings, AIS replay and offline DTED/GeoPackage packaging."
+requires-python = ">=3.11"
+dependencies = [
+  "numpy", "rasterio", "pyproj", "shapely>=2", "geopandas", "pyogrio", "pyarrow",
+  "duckdb", "pystac-client", "pystac", "pyyaml", "trimesh", "mapbox-earcut", "websockets",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+twin = "twin.cli:main"
+
+[tool.setuptools]
+packages = ["twin"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::PendingDeprecationWarning:affine"]

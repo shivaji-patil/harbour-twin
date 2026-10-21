@@ -1,0 +1,167 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/processing/v1.2.0/schema.json"
+  ],
+  "id": "lidar-dtm-dsm",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -123.075,
+          49.272
+        ],
+        [
+          -123.075,
+          49.318
+        ],
+        [
+          -123.15,
+          49.318
+        ],
+        [
+          -123.15,
+          49.272
+        ],
+        [
+          -123.075,
+          49.272
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -123.15,
+    49.272,
+    -123.075,
+    49.318
+  ],
+  "properties": {
+    "title": "Lidar terrain and surface models, 2 m, CGVD2013",
+    "processing:software": {
+      "harbour-twin": "0.1.0"
+    },
+    "processing:lineage": "NRCan HRDEM 1 m mosaic COGs, windowed read via NRCan STAC, average (DTM) / max (DSM) resampling",
+    "proj:code": "EPSG:3157",
+    "proj:shape": [
+      2562,
+      2732
+    ],
+    "proj:transform": [
+      2.0,
+      0.0,
+      489088.0,
+      0.0,
+      -2.0,
+      5462818.0
+    ],
+    "vertical_datum": "CGVD2013 (EPSG:6647)",
+    "source_items": [
+      "2_3-mosaic-1m",
+      "1_3-mosaic-1m"
+    ],
+    "qc:gates": {
+      "Copernicus GLO-30 vs lidar DSM": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": false
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": true
+        }
+      ],
+      "Copernicus GLO-30 vs lidar DTM, open ground": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": false
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": true
+        }
+      ],
+      "NRCan MRDEM-30 DTM vs lidar DTM": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": false
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": true
+        }
+      ],
+      "Datum error demo: GLO-30 heights used as ellipsoidal": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": false
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": false
+        }
+      ]
+    },
+    "datetime": "2026-10-21T19:55:03.815590Z"
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    }
+  ],
+  "assets": {
+    "dtm_cgvd2013": {
+      "href": "../../dtm_cgvd2013.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "DTM",
+      "file:size": 22193527,
+      "file:checksum": "12207b73120c60106995790274d8d004578f5aaba0a31dfacf527f64d40fafcc05d4",
+      "roles": [
+        "data"
+      ]
+    },
+    "dsm_cgvd2013": {
+      "href": "../../dsm_cgvd2013.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "DSM",
+      "file:size": 26414181,
+      "file:checksum": "122009743a4068d481bb863460ba62ac6f5381e55bb4260e1474f90ba765fa1ebaf1",
+      "roles": [
+        "data"
+      ]
+    },
+    "ndsm": {
+      "href": "../../ndsm.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "Normalized DSM",
+      "file:size": 24557399,
+      "file:checksum": "12200df66bb658e2bc174fb3ed02fbb87f20e8494c3d3036ec7edc04fcc4080ba1f9",
+      "roles": [
+        "data"
+      ]
+    },
+    "qc": {
+      "href": "../../QC_REPORT.md",
+      "type": "text/markdown",
+      "title": "QC report",
+      "file:size": 4854,
+      "file:checksum": "122025062da84fb4d885f8977bf8529eaf950d7c39f7e39a5111e4ab83def1bac5b2",
+      "roles": [
+        "metadata"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# St. John's harbour twin: downtown, the Narrows, Signal Hill.
+name: St. John's Harbour, NL
+bbox: [-52.735, 47.548, -52.670, 47.580]
+terrain_bbox: [-52.850, 47.480, -52.600, 47.650]
+ais_bbox: [-52.850, 47.450, -52.550, 47.700]
+dem_res_m: 2.0
+terrain_res_m: 5.0
+overture_release: "2026-10-21.0"
+specs:
+  - {name: "Copernicus DEM GLO-30 spec", le90_m: 4.0, max_bias_m: 1.0, max_void_fraction: 0.01}
+  - {name: "DTED Level 2 (MIL-PRF-89020B)", le90_m: 18.0, max_bias_m: 5.0, max_void_fraction: 0.0}
+sea_points:
+  - [St. John's Harbour, -52.700, 47.563]
+  - [Atlantic off Cape Spear, -52.610, 47.520]
+tide_station: "00905"  # CHS St. John's
