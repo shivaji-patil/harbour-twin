@@ -103,7 +103,7 @@
         }
       }
     ],
-    "datetime": "2026-10-21T19:55:03.815590Z"
+    "datetime": "2026-10-21T23:03:57.343617Z"
   },
   "links": [
     {
@@ -134,8 +134,8 @@
       "href": "../../offline/vancouver_offline.gpkg",
       "type": "application/geopackage+sqlite3",
       "title": "GeoPackage",
-      "file:size": 7151616,
-      "file:checksum": "12204f4c9946383dada4a23152b437826c4abe89e7ba301903a804424ed144bf4991",
+      "file:size": 7380992,
+      "file:checksum": "12204d2d8d3831a84432c5561f30d8856c673e1bd843bf78e5ed3274866ff633f7f4",
       "roles": [
         "data"
       ]

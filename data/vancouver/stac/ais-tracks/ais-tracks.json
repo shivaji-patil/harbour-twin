@@ -46,7 +46,7 @@
       "harbour-twin": "0.1.0"
     },
     "processing:lineage": "",
-    "datetime": "2026-10-21T19:55:03.815590Z"
+    "datetime": "2026-10-21T23:03:57.343617Z"
   },
   "links": [
     {
@@ -67,8 +67,8 @@
       "href": "../../ais_tracks.parquet",
       "type": "application/vnd.apache.parquet",
       "title": "Tracks (GeoParquet)",
-      "file:size": 33239,
-      "file:checksum": "12204d733755854d1e200c83f397b1eb914d5ba072a009bca2a03f2dc73293ed2586",
+      "file:size": 99479,
+      "file:checksum": "1220979230a45201751fe67e2ea62972ef6a2de75f2d090e16973af5c3a0de723ac3",
       "roles": [
         "data"
       ]
@@ -77,8 +77,8 @@
       "href": "../../ais_positions.parquet",
       "type": "application/vnd.apache.parquet",
       "title": "Positions (GeoParquet)",
-      "file:size": 73386,
-      "file:checksum": "122033783e68508b8f08989cdd0b8572008e6ca3cb1bcb5aa1c2004a415209d57222",
+      "file:size": 273329,
+      "file:checksum": "12209e4940a248712580f49dcd1cbc5129d4046237cff7bb5e7f88611f9c0a71fb0d",
       "roles": [
         "data"
       ]

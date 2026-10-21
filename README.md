@@ -5,7 +5,9 @@ It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, l
 
 **Run the viewer:** `make serve`, then open http://127.0.0.1:8765 · [QC report](data/vancouver/QC_REPORT.md) · [STAC catalog](data/vancouver/stac/catalog.json) · Offline products: `data/vancouver/offline/`
 
-![Downtown Vancouver from False Creek: lidar buildings coloured by height, AIS vessels with 30-minute trails in Burrard Inlet, North Shore terrain behind](docs/img/hero.jpg)
+![Downtown Vancouver from False Creek: lidar buildings coloured by height, AIS vessels with 30-minute trails in Burrard Inlet, water level following the observed tide](docs/img/hero.jpg)
+
+*The bundled replay is a 4-hour live capture (21 Oct 2026, 19:03–23:03 UTC): 347 vessels, 7,854 cleaned positions, 769 track segments. The flood planner can follow the CHS-observed tide on the same clock.*
 
 ## What it does
 
