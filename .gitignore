@@ -6,7 +6,7 @@ __pycache__/
 .pytest_cache/
 node_modules/
 data/cache/
-# Large products: rebuilt by `make data` and by CI from upstream STAC sources
+# Large products: rebuilt by `make data` from upstream STAC sources
 data/*/*.tif
 data/*/offline/dted/
 data/*/offline/*.gpkg

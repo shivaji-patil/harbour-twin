@@ -74,7 +74,7 @@ flowchart LR
     C[catalog.py<br/>STAC]
   end
   subgraph Out["Products"]
-    W[CesiumJS viewer<br/>GitHub Pages]
+    W[CesiumJS viewer<br/>static site]
     O[DTED · GPKG<br/>offline platforms]
     R[QC report · STAC]
   end
@@ -96,7 +96,7 @@ flowchart LR
 - **Flag, don't resolve.** When lidar and Overture disagree on a building's height, the building keeps the lidar value and carries a `height_flag`, visible in the viewer and in the GeoParquet.
 - **Precompute in the pipeline, keep the client thin.** The flood level is a per-building attribute and a per-cell grid, so the browser only compares a number against the slider.
 - **No vendor tokens.** Terrain is served from two small int16 grids through `CustomHeightmapTerrainProvider`, so the viewer runs anywhere without a Cesium ion key.
-- **CI rebuilds the twin.** [GitHub Actions](.github/workflows/twin.yml) re-runs the whole pipeline from upstream every week and on every push. It gates on 44 unit and acceptance tests plus the glTF validator, writes the QC report to the job summary, and deploys the viewer.
+- **One command rebuilds and checks the twin.** `make data test validate` re-runs the whole pipeline from upstream, then gates on 44 unit and acceptance tests plus the glTF validator. The viewer is a static folder (`web/`) that any web server can host.
 
 ## Run it
 
@@ -118,7 +118,7 @@ twin/            pipeline package (sources, datum, qc, flood, tiles3d, ais, tide
 config/          one YAML per city
 tests/           unit tests + acceptance tests on the published products
 web/             CesiumJS viewer; web/data/<aoi>/ is what the pipeline publishes for it
-data/<aoi>/      QC report, lineage, GeoParquet, STAC catalog (rasters/DTED/GPKG rebuilt by CI)
+data/<aoi>/      QC report, lineage, GeoParquet, STAC catalog (rasters/DTED/GPKG rebuilt by `make data`)
 tools/           Khronos glTF validator runner
 ```
 
