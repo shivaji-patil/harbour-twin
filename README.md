@@ -37,7 +37,7 @@ All numbers are recomputed on every pipeline run ([full report](data/vancouver/Q
 
 **Datum audit at the AOI centre:** the geoid undulation is −19.05 m. PROJ's *default* CGVD2013 → WGS 84 transform is off by **0.30 m** here, because it uses a ballpark frame and skips the NAD83(CSRS) → WGS 84 Helmert step (it's off by 1.05 m in St. John's). The explicit pipeline in [`twin/datum.py`](twin/datum.py) fixes this, and a test pins it.
 
-**Building heights:** comparing Overture's published heights with lidar gives a median offset of −1.2 m for City of Vancouver data, −2.1 m for Microsoft ML footprints and −4.0 m for OpenStreetMap. Lidar recovers the towers: Hyatt 196.9 m (published 201), One Wall Centre 148.5 m (150), MNP Tower 142.8 m (144). It also catches the outliers, such as the 188 m Paradox tower tagged as 10 m in OSM. 717 buildings are flagged for review.
+**Building heights:** comparing Overture's published heights with lidar gives a median offset of −1.2 m for City of Vancouver data, −2.1 m for Microsoft ML footprints and −4.0 m for OpenStreetMap. Lidar recovers the towers: Hyatt 196.9 m (published 201), One Wall Centre 148.5 m (150), MNP Tower 142.8 m (144). It also catches the outliers, such as the 190.8 m Paradox tower tagged as 10 m in OSM. 717 buildings are flagged for review.
 
 **Flood screen** (still-water levels, CGVD2013; buildings reached out of 5,848):
 
