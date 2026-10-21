@@ -127,7 +127,8 @@ def elevation_qc(aoi: AOI) -> dict:
     _save_lineage(aoi, copernicus_items=glo_ids)
     _write_cog(aoi.data_dir / "glo30_egm2008_qcgrid.tif", glo, grid, VERTICAL_DATUM="EGM2008")
     qc.write_report(report, aoi.data_dir)
-    (aoi.web_dir / "qc_report.json").write_text((aoi.data_dir / "qc_report.json").read_text())
+    for f in ("qc_report.json", "QC_REPORT.md"):  # the viewer links to the report it was built with
+        (aoi.web_dir / f).write_text((aoi.data_dir / f).read_text())
     return report
 
 

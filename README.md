@@ -3,7 +3,7 @@
 **A 3D digital twin of Vancouver Harbour, built entirely from public data and checked automatically.**
 It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, live-recorded AIS vessel traffic, observed tides, a connected coastal-flood planner, and DTED / GeoPackage packages for platforms that operate offline.
 
-**[Open the live viewer →](https://USER.github.io/harbour-twin/)** · [QC report](data/vancouver/QC_REPORT.md) · [STAC catalog](data/vancouver/stac/catalog.json)
+**Run the viewer:** `make serve`, then open http://127.0.0.1:8765 · [QC report](data/vancouver/QC_REPORT.md) · [STAC catalog](data/vancouver/stac/catalog.json) · Offline products: `data/vancouver/offline/`
 
 ![Downtown Vancouver from False Creek: lidar buildings coloured by height, AIS vessels with 30-minute trails in Burrard Inlet, North Shore terrain behind](docs/img/hero.jpg)
 

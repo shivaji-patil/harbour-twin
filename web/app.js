@@ -1,7 +1,6 @@
 // Harbour Twin viewer. Everything it shows is produced by the `twin` pipeline into data/<aoi>/.
 const AOI = new URLSearchParams(location.search).get("aoi") || "vancouver";
 const DATA = `data/${AOI}/`;
-const REPO = "https://github.com/shivajipatil/harbour-twin"; // set to the published repository
 
 const $ = (id) => document.getElementById(id);
 const getJSON = (f) => fetch(DATA + f).then((r) => (r.ok ? r.json() : Promise.reject(new Error(f))));
@@ -341,7 +340,7 @@ async function main() {
     qcRows.push(["Geoid N (EGM2008)", `${fmt(terrainMeta.geoid_egm2008_to_wgs84)} <small>m</small>`]);
   }
   $("qc").innerHTML = qcRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
-  $("qc-link").href = `${REPO}/blob/main/data/${AOI}/QC_REPORT.md`;
+  $("qc-link").href = DATA + "QC_REPORT.md";
   $("about-link").onclick = (e) => { e.preventDefault(); $("about").showModal(); };
 
   weather((g.core.west + g.core.east) / 2, (g.core.south + g.core.north) / 2);
