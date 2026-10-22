@@ -70,7 +70,7 @@
       "OpenStreetMap": -3.98
     },
     "tiles": 69,
-    "datetime": "2026-10-22T00:18:43.170517Z"
+    "datetime": "2026-10-22T08:56:43.977932Z"
   },
   "links": [
     {
@@ -104,6 +104,16 @@
       "roles": [
         "data",
         "visual"
+      ]
+    },
+    "cityjson": {
+      "href": "../../buildings.city.json",
+      "type": "application/city+json",
+      "title": "CityJSON 2.0, LoD1 solids (UTM NAD83(CSRS) + CGVD2013)",
+      "file:size": 7086706,
+      "file:checksum": "1220250479a2e94c32afe3cb6bcba252f7093d5c241539ca70aff8ad411a0152675a",
+      "roles": [
+        "data"
       ]
     }
   }

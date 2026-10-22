@@ -9,7 +9,7 @@ setup:            ## virtualenv + Python deps + glTF validator
 	cd tools && npm ci --ignore-scripts
 
 data:             ## rebuild every product for $(AOI) from upstream sources (~2 min)
-	$(TWIN) $(AOI) lidar qc terrain imagery buildings ais sar tides package catalog
+	$(TWIN) $(AOI) lidar qc terrain imagery buildings export3d ais sar tides package catalog
 
 record:           ## capture live AIS for $(AOI) (needs AISSTREAM_API_KEY), e.g. make record MIN=120
 	$(TWIN) $(AOI) record --minutes $(or $(MIN),60)

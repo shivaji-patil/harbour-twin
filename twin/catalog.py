@@ -78,6 +78,9 @@ def build(aoi: AOI) -> dict:
     b.add_asset("3dtiles", pystac.Asset(href=os.path.relpath(aoi.web_dir / "buildings" / "tileset.json", root),
                                         media_type="application/json", roles=["data", "visual"],
                                         title="OGC 3D Tiles 1.1 tileset (EXT_mesh_features + EXT_structural_metadata)"))
+    if (root / "buildings.city.json").exists():
+        b.add_asset("cityjson", _asset(root / "buildings.city.json", root, "application/city+json", ["data"],
+                                       "CityJSON 2.0, LoD1 solids (UTM NAD83(CSRS) + CGVD2013)"))
     cat.add_item(b)
 
     off = root / "offline" / "manifest.json"

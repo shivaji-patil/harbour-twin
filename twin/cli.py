@@ -6,9 +6,9 @@ import json
 import logging
 import time
 
-from . import ais, catalog, config, package, pipeline, sar, tides
+from . import ais, catalog, config, export3d, package, pipeline, sar, tides
 
-STEPS = ["lidar", "qc", "terrain", "imagery", "buildings", "ais", "sar", "tides", "package", "catalog"]
+STEPS = ["lidar", "qc", "terrain", "imagery", "buildings", "export3d", "ais", "sar", "tides", "package", "catalog"]
 
 
 def _ais_window(aoi):
@@ -40,6 +40,7 @@ def main(argv=None):
         "terrain": lambda: pipeline.terrain(aoi),
         "imagery": lambda: pipeline.imagery(aoi),
         "buildings": lambda: pipeline.buildings(aoi),
+        "export3d": lambda: export3d.run(aoi),
         "ais": lambda: ais.build(raw, aoi.data_dir, aoi.web_dir) if raw.exists() else None,
         "sar": lambda: sar.build(aoi, a.scene),
         "tides": lambda: tides.build(aoi.tide_station, *_ais_window(aoi), aoi.web_dir) if aoi.tide_station else None,
