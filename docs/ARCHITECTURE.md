@@ -23,7 +23,7 @@ lidar qc terrain imagery buildings ais sar tides package catalog
 | `buildings` | `pipeline.buildings`, `tiles3d.py` | Overture buildings, lidar COGs, flood-level grid | `buildings.parquet`, `web/.../buildings/tileset.json` + `tiles/*.glb`, `buildings_summary.json` |
 | `record` | `ais.record` | aisstream.io WebSocket | `data/cache/<aoi>/ais_raw.jsonl` (appends) |
 | `ais` | `ais.build` | raw JSONL | `ais_positions.parquet`, `ais_tracks.parquet`, `web/.../ais.czml` |
-| `sar` | `sar.build` | Sentinel-1 RTC COGs, Overture water, AIS positions | `sar_detections.parquet`, `web/.../sar.json`, `sar.png` |
+| `sar` | `sar.build` | Sentinel-1 RTC COGs, Overture water, AIS positions | `sar_detections.parquet`, `web/.../sar.json`, `sar.jpg` |
 | `tides` | `tides.build` | CHS IWLS station metadata + water levels | `web/.../tide.json` |
 | `package` | `package.run` | GLO-30, QC report, buildings, AIS tracks | `offline/dted/*.dt2`, `offline/<aoi>_offline.gpkg`, `offline/manifest.json` |
 | `catalog` | `catalog.build` | every product above, `lineage.json` | `data/<aoi>/stac/` (static STAC catalog) |
@@ -142,7 +142,7 @@ The scene usually appears in the Planetary Computer catalogue within one to a fe
 | `sentinel2.jpg/json` | Imagery drape | required |
 | `ais.czml` | Vessel replay and clock | "No AIS capture" note |
 | `tide.json` | Flood presets, follow-tide mode, starting level | planner works without presets |
-| `sar.json`, `sar.png` | SAR targets and radar image | layer disabled |
+| `sar.json`, `sar.jpg` | SAR targets and radar image | layer disabled |
 | `qc_report.json` | Data-quality panel, city name | panel shows building stats only |
 
 The St. John's twin, with the planner at record + 1 m (2.20 m CGVD2013, 86 of 7,308 buildings reached):

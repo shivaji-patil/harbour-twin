@@ -302,7 +302,7 @@ def build(aoi: AOI, scene_id: str | None = None) -> dict:
     dets["name"] = [names.get(m) if pd.notna(m) else None for m in dets.mmsi]
     dets["scene"], dets["time"] = item.id, t
     dets.to_parquet(aoi.data_dir / "sar_detections.parquet")
-    _quicklook(bands["co"], grid, aoi.web_dir / "sar.png")
+    _quicklook(bands["co"], grid, aoi.web_dir / "sar.jpg")
 
     lon0, lat0, lon1, lat1 = grid.bbox_lonlat()
     counts = dets.status.value_counts().to_dict()
@@ -318,7 +318,7 @@ def build(aoi: AOI, scene_id: str | None = None) -> dict:
                    "shore_buffer_m": SHORE_M, "gate_m": GATE_M, "r_over_v_s": R_OVER_V_S},
         "next_passes": next_passes(aoi.ais_bbox, now),
     }
-    web = {**summary, "image": {"file": "sar.png", "west": lon0, "south": lat0, "east": lon1, "north": lat1},
+    web = {**summary, "image": {"file": "sar.jpg", "west": lon0, "south": lat0, "east": lon1, "north": lat1},
            "targets": [{"lon": round(p.x, 6), "lat": round(p.y, 6), "status": s,
                         "mmsi": None if pd.isna(m) else int(m), "name": n, "peak_cross_db": float(db), "n_px": int(px),
                         "match_m": None if pd.isna(mm) else float(mm)}
@@ -332,7 +332,11 @@ def build(aoi: AOI, scene_id: str | None = None) -> dict:
 
 
 def _quicklook(co: np.ndarray, grid: Grid, path) -> None:
-    """Co-pol backscatter as a greyscale PNG on a lon/lat grid, for the viewer's imagery layer."""
+    """Co-pol backscatter as a greyscale JPEG on a lon/lat grid, for the viewer's imagery layer.
+
+    JPEG, not PNG: speckle makes a lossless image ~6x larger for no visible gain.
+    Outside the scene is black, which reads as calm sea.
+    """
     w, s, e, n = grid.bbox_lonlat()
     h = grid.height
     width = int(round(h * (e - w) / (n - s) * np.cos(np.radians((s + n) / 2))))
@@ -342,8 +346,7 @@ def _quicklook(co: np.ndarray, grid: Grid, path) -> None:
               dst_transform=from_bounds(w, s, e, n, width, h), dst_crs="EPSG:4326",
               resampling=Resampling.bilinear, src_nodata=np.nan, dst_nodata=np.nan)
     grey = np.clip((_db(dst) + 25) / 30, 0, 1) * 255  # -25..+5 dB
-    alpha = np.where(np.isfinite(dst), 255, 0)
-    Image.fromarray(np.dstack([grey, grey, grey, alpha]).astype("uint8"), "RGBA").save(path, optimize=True)
+    Image.fromarray(grey.astype("uint8"), "L").save(path, quality=85, optimize=True)
 
 
 def _iso(t: datetime) -> str:
