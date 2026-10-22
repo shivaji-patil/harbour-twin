@@ -18,6 +18,14 @@ AOI = os.environ.get("TWIN_AOI", "vancouver")  # make test AOI=<aoi>
 DATA, WEB = ROOT / "data" / AOI, ROOT / "web" / "data" / AOI
 pytestmark = pytest.mark.skipif(not (DATA / "qc_report.json").exists(), reason="pipeline not run")
 
+# Rasters, DTED and GeoPackage are git-ignored (rebuilt by `make data`, or copied in from products/).
+LARGE = "large products not present: run `make data` or copy products/data into data/"
+
+
+def _need(*paths):
+    if not all(Path(x).exists() for x in paths):
+        pytest.skip(LARGE)
+
 
 @pytest.fixture(scope="module")
 def qc():
@@ -64,6 +72,7 @@ def test_building_heights_mostly_from_lidar():
 
 def test_dted_header_and_grid():
     m = json.loads((DATA / "offline" / "manifest.json").read_text())
+    _need(*(DATA / "offline" / c["file"] for c in m["dted"]))
     for cell in m["dted"]:
         with rasterio.open(DATA / "offline" / cell["file"]) as ds:
             assert ds.driver == "DTED" and ds.shape == (3601, 3601)
@@ -74,6 +83,7 @@ def test_dted_header_and_grid():
 def test_geopackage_layers():
     import pyogrio
     m = json.loads((DATA / "offline" / "manifest.json").read_text())
+    _need(DATA / "offline" / m["geopackage"]["file"])
     layers = {name for name, _ in pyogrio.list_layers(DATA / "offline" / m["geopackage"]["file"])}
     assert {"buildings"} <= layers
 
@@ -82,6 +92,7 @@ def test_stac_catalog_resolves():
     cat = pystac.Catalog.from_file(str(DATA / "stac" / "catalog.json"))
     items = list(cat.get_items())
     assert {"lidar-dtm-dsm", "buildings-3d"} <= {i.id for i in items}
+    _need(*(a.get_absolute_href() for it in items for a in it.assets.values() if a.href.endswith((".tif", ".dt2", ".gpkg"))))
     for it in items:
         for a in it.assets.values():
             assert Path(a.get_absolute_href()).exists(), f"{it.id}: {a.href}"

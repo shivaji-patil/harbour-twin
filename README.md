@@ -3,6 +3,8 @@
 **A 3D digital twin of Vancouver Harbour, built entirely from public data and checked automatically.**
 It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, live-recorded AIS vessel traffic cross-checked against Sentinel-1 radar, observed tides, a connected coastal-flood planner, and DTED / GeoPackage packages for platforms that operate offline. The same pipeline builds St. John's Harbour from one more YAML file.
 
+**New here?** Open [docs/OVERVIEW.html](docs/OVERVIEW.html) in a browser: a plain-language tour with diagrams and step-by-step instructions to reproduce everything.
+
 **Run the viewer:** `make serve`, then open http://127.0.0.1:8765 · [QC report](data/vancouver/QC_REPORT.md) · [STAC catalog](data/vancouver/stac/catalog.json) · Offline products: `data/vancouver/offline/` · [Architecture](docs/ARCHITECTURE.md) · [Data sources](docs/DATA.md) · St. John's: http://127.0.0.1:8765/?aoi=stjohns
 
 ![Downtown Vancouver from False Creek: lidar buildings coloured by height, AIS vessels with 30-minute trails in Burrard Inlet, water level following the observed tide](docs/img/hero.jpg)
