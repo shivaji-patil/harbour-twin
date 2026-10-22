@@ -24,6 +24,7 @@ def _ais_window(aoi):
 
 
 def main(argv=None):
+    """`twin <aoi> <steps...>`: run the named steps (or all of STEPS) in order, logging each step's time."""
     ap = argparse.ArgumentParser(prog="twin", description=__doc__)
     ap.add_argument("aoi", help="config/<aoi>.yaml")
     ap.add_argument("steps", nargs="+", help=f"any of {STEPS}, 'all', 'record', 'passes' or 'publish'")

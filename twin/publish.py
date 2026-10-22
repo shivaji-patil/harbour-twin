@@ -33,6 +33,7 @@ SKIP = {".aux.xml"}  # GDAL side-cars
 
 
 def content_type(path: Path) -> str:
+    """Media type for a product file, with the geospatial types mimetypes does not know from TYPES."""
     if path.name.endswith(".city.json"):
         return "application/city+json"
     return TYPES.get(path.suffix) or mimetypes.guess_type(path.name)[0] or "application/octet-stream"

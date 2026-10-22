@@ -127,6 +127,7 @@ def cityjson(buildings: gpd.GeoDataFrame, epsg_utm: int, title: str) -> dict:
     verts, index = [], {}
 
     def vertex(x, y, z):
+        """Index of (x, y, z) in the shared vertex list, deduplicated at the 1 mm quantization."""
         key = (round(x / SCALE), round(y / SCALE), round(z / SCALE))
         if key not in index:
             index[key] = len(verts)
@@ -243,6 +244,7 @@ def _read_glb(path: Path) -> tuple[dict, bytes]:
 def _property_table(gltf: dict, bin_: bytes) -> tuple[int, dict]:
     """EXT_structural_metadata property table as plain lists (non-finite numbers -> None)."""
     def view(i):
+        """Bytes of glTF buffer view `i`."""
         v = gltf["bufferViews"][i]
         return bin_[v.get("byteOffset", 0):v.get("byteOffset", 0) + v["byteLength"]]
     meta = gltf["extensions"]["EXT_structural_metadata"]
@@ -329,6 +331,7 @@ def verify_slpk(path: Path, expected_nodes: int) -> dict:
     names = set(z.namelist())
 
     def load(name):
+        """A JSON entry of the package, gunzipped if needed."""
         raw = z.read(name)
         return json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
     layer = load("3dSceneLayer.json.gz")
@@ -352,6 +355,8 @@ def verify_slpk(path: Path, expected_nodes: int) -> dict:
 # --- step -----------------------------------------------------------------------------
 
 def run(aoi: AOI) -> dict:
+    """The `export3d` step: buildings.city.json (validated CityJSON) and buildings.slpk (verified I3S)
+    in data/<aoi>/; raises if either check fails."""
     b = gpd.read_parquet(aoi.data_dir / "buildings.parquet")
     doc = cityjson(b, aoi.utm.to_epsg(), f"Harbour Twin buildings, {aoi.name}")
     errors = validate_cityjson(doc)

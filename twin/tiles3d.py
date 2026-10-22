@@ -37,6 +37,7 @@ def enu_frame(lon: float, lat: float, h: float = 0.0):
 
 
 def enu_to_ecef_matrix(origin, rot) -> list[float]:
+    """4x4 transform from a local east-north-up frame to ECEF, column-major as 3D Tiles expects."""
     m = np.eye(4)
     m[:3, :3] = rot.T
     m[:3, 3] = origin
@@ -81,6 +82,7 @@ class _Bin:
         self.views = []
 
     def add(self, arr: bytes | np.ndarray, target: int | None = None) -> int:
+        """Append bytes, 8-byte aligned, as a new bufferView; returns its index."""
         raw = arr.tobytes() if isinstance(arr, np.ndarray) else arr
         self.data += b"\x00" * ((-len(self.data)) % 8)
         view = {"buffer": 0, "byteOffset": len(self.data), "byteLength": len(raw)}
@@ -92,10 +94,13 @@ class _Bin:
 
 
 def write_glb(path: Path, positions, normals, feature_ids, indices, props: dict, schema: dict) -> None:
+    """One binary glTF tile: positions and normals (ENU, y-up), a feature id per vertex
+    (EXT_mesh_features) and the buildings' properties as an EXT_structural_metadata property table."""
     b = _Bin()
     accessors = []
 
     def accessor(arr, ctype, typ, target, minmax=False):
+        """Add a glTF accessor over `arr` (with min/max when asked, as POSITION requires); returns its index."""
         a = {"bufferView": b.add(arr, target), "componentType": ctype, "count": len(arr), "type": typ}
         if minmax:
             a["min"], a["max"] = arr.min(axis=0).tolist(), arr.max(axis=0).tolist()

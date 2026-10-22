@@ -211,6 +211,8 @@ def terrain(aoi: AOI) -> dict:
 # --- 4. Imagery ------------------------------------------------------------------------
 
 def imagery(aoi: AOI) -> dict:
+    """Cloud-free Sentinel-2 true-colour drape over the terrain bbox (10 m, gently stretched); the
+    scenes used go to sentinel2.json and the lineage."""
     g = _geo_grid(aoi.terrain_bbox, 10.0)
     rgb, meta = sources.sentinel2_visual(g)
     # Gentle stretch: L2A 'visual' is scaled conservatively and reads dark on screen.

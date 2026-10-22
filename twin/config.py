@@ -37,24 +37,29 @@ class AOI:
 
     @property
     def utm(self) -> CRS:
+        """NAD83(CSRS) UTM zone covering the core bbox: the projected CRS for lidar work and CityJSON."""
         w, s, e, n = self.bbox
         info = query_utm_crs_info(datum_name="NAD83(CSRS)", area_of_interest=AreaOfInterest(w, s, e, n))
         return CRS.from_epsg(info[0].code)
 
     @property
     def data_dir(self) -> Path:
+        """data/<slug>/: products and reports."""
         return ROOT / "data" / self.slug
 
     @property
     def cache_dir(self) -> Path:
+        """data/cache/<slug>/: raw AIS captures and intermediate grids; never published."""
         return ROOT / "data" / "cache" / self.slug
 
     @property
     def web_dir(self) -> Path:
+        """web/data/<slug>/: what the viewer loads."""
         return ROOT / "web" / "data" / self.slug
 
 
 def load(slug: str) -> AOI:
+    """Read config/<slug>.yaml into an AOI and create its data, cache and web directories."""
     raw = yaml.safe_load((ROOT / "config" / f"{slug}.yaml").read_text())
     raw["specs"] = [Spec(**s) for s in raw.get("specs", [])]
     for k in ("bbox", "terrain_bbox", "ais_bbox"):

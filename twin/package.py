@@ -36,6 +36,7 @@ def dted_cells(bbox) -> list[tuple[int, int]]:
 
 
 def dted_name(lon: int, lat: int) -> str:
+    """DTED path of the cell with south-west corner (lon, lat), e.g. w124/n49.dt2."""
     return f"{'e' if lon >= 0 else 'w'}{abs(lon):03d}/{'n' if lat >= 0 else 's'}{abs(lat):02d}.dt2"
 
 
@@ -141,6 +142,8 @@ def features(aoi: AOI) -> dict:
 
 
 def run(aoi: AOI) -> dict:
+    """The `package` step: DTED Level 2 cells covering the AOI (header accuracy from the measured
+    GLO-30 LE90), the offline GeoPackage and features.gpkg, described in offline/manifest.json."""
     out = aoi.data_dir / "offline"
     out.mkdir(exist_ok=True)
     qc = json.loads((aoi.data_dir / "qc_report.json").read_text())

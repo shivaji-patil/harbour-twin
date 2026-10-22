@@ -178,6 +178,7 @@ def detect(co: np.ndarray, cross: np.ndarray, water: np.ndarray, grid: Grid) -> 
 # --- AIS cross-check ----------------------------------------------------------------------
 
 def ais_covers(positions: pd.DataFrame, t: datetime, margin_s: float = 600) -> bool:
+    """True if the AIS capture spans time `t`, allowing `margin_s` seconds either side."""
     return len(positions) > 0 and (positions.time.min() - timedelta(seconds=margin_s)
                                    <= t <= positions.time.max() + timedelta(seconds=margin_s))
 

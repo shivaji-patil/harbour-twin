@@ -27,6 +27,7 @@ STATIC_TYPES = {"ShipStaticData", "StaticDataReport"}
 
 # ITU-R M.1371 ship type codes, grouped the way a harbour master reads them.
 def ship_category(code) -> str:
+    """Category for an ITU AIS ship-type code (cargo, tanker, tug, ...); 'unknown' when no code was sent."""
     try:
         c = int(code)
     except (TypeError, ValueError):
@@ -43,6 +44,7 @@ def ship_category(code) -> str:
 
 
 def api_key() -> str:
+    """aisstream.io key from $AISSTREAM_API_KEY, else from the project's .env."""
     if os.environ.get("AISSTREAM_API_KEY"):
         return os.environ["AISSTREAM_API_KEY"]
     env = Path(__file__).resolve().parents[1] / ".env"
@@ -83,6 +85,7 @@ async def _record(bbox, out: Path, seconds: float):
 
 
 def record(bbox, out: Path, minutes: float) -> None:
+    """Capture live AIS inside `bbox` (W, S, E, N) for `minutes`, appending raw messages to `out` (JSONL)."""
     asyncio.run(_record(bbox, out, minutes * 60))
 
 
@@ -92,6 +95,9 @@ def _parse_time(t: str) -> datetime:
 
 
 def load_raw(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Raw aisstream.io JSONL as two tables: one row per position report (time, lon/lat, SOG, COG,
+    heading, nav status) and one row per MMSI of its static data (name, ship type, destination,
+    length and beam in metres)."""
     pos, static = [], {}
     for line in path.read_text().splitlines():
         try:
@@ -123,6 +129,7 @@ def load_raw(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def haversine_m(lon1, lat1, lon2, lat2):
+    """Great-circle distance in metres between lon/lat points in degrees (mean Earth radius)."""
     lon1, lat1, lon2, lat2 = map(np.radians, (lon1, lat1, lon2, lat2))
     a = np.sin((lat2 - lat1) / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin((lon2 - lon1) / 2) ** 2
     return 2 * 6371008.8 * np.arcsin(np.sqrt(a))
@@ -153,6 +160,8 @@ def clean(p: pd.DataFrame, max_speed_kn: float = 45.0, gap_min: float = 20.0) ->
 
 
 def build(raw: Path, out_dir: Path, web_dir: Path) -> dict:
+    """Clean a raw capture and publish it: ais_positions.parquet and ais_tracks.parquet (one
+    LineString per vessel segment) in `out_dir`, ais.czml in `web_dir`. Returns counts and the window."""
     p, st = load_raw(raw)
     n_raw = len(p)
     p = clean(p)
@@ -193,6 +202,8 @@ CATEGORY_COLORS = {  # RGBA
 
 
 def to_czml(pts: gpd.GeoDataFrame) -> list:
+    """CZML for CesiumJS: a clock over the capture and, per vessel, a time-tagged position (linear,
+    holding the last fix), a point coloured by category and a 30-minute trail."""
     t0, t1 = pts.time.min(), pts.time.max()
     iso = lambda t: t.strftime("%Y-%m-%dT%H:%M:%SZ")
     doc = [{"id": "document", "name": "AIS replay", "version": "1.0",

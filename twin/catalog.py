@@ -40,6 +40,8 @@ def _asset(path, root, media, roles, title, **extra):
 
 
 def build(aoi: AOI) -> dict:
+    """Write data/<aoi>/stac/: a self-contained STAC catalog with one item per product family, each with
+    checksums, projection, lineage and QC verdicts. Validates it and returns the item ids."""
     root = aoi.data_dir
     lineage = json.loads((root / "lineage.json").read_text())
     qc = json.loads((root / "qc_report.json").read_text()) if (root / "qc_report.json").exists() else {}
@@ -49,6 +51,7 @@ def build(aoi: AOI) -> dict:
                          title=f"Harbour twin: {aoi.name}")
 
     def item(id_, title, bbox=aoi.bbox):
+        """A STAC Item over `bbox` with this catalog's extensions; callers fill in lineage and assets."""
         it = pystac.Item(id=id_, geometry=mapping(box(*bbox)), bbox=list(bbox), datetime=now,
                          properties={"title": title, "processing:software": {"harbour-twin": "0.1.0"},
                                      "processing:lineage": ""}, stac_extensions=list(EXT.values()))

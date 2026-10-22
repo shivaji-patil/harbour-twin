@@ -29,6 +29,8 @@ class Metrics:
 
 
 def metrics(err: np.ndarray) -> Metrics | None:
+    """Accuracy of an error array in metres, NaNs ignored: bias, std, RMSE, MAE, NMAD (robust sigma)
+    and LE90/LE95 (90th/95th percentile of absolute error). None for fewer than 10 values."""
     e = err[np.isfinite(err)]
     if e.size < 10:
         return None
@@ -47,6 +49,7 @@ def metrics(err: np.ndarray) -> Metrics | None:
 
 
 def slope_deg(z: np.ndarray, res: float) -> np.ndarray:
+    """Terrain slope in degrees from a height grid with `res`-metre cells."""
     gy, gx = np.gradient(z.astype("float64"), res)
     return np.degrees(np.arctan(np.hypot(gx, gy))).astype("float32")
 
@@ -92,6 +95,7 @@ def gate(result: dict, spec) -> dict:
 
 
 def write_report(report: dict, out_dir: Path) -> None:
+    """Write qc_report.json and the human-readable QC_REPORT.md to `out_dir`."""
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "qc_report.json").write_text(json.dumps(report, indent=2))
     (out_dir / "QC_REPORT.md").write_text(render_markdown(report))
@@ -102,6 +106,8 @@ def _fmt(v, nd=2):
 
 
 def render_markdown(r: dict) -> str:
+    """The QC report as Markdown: datum audit, then per comparison the overall and by-slope
+    metrics and each spec gate's verdict, then the sanity checks."""
     L = [f"# Elevation QC report: {r['aoi']}", "",
          f"Generated {r['generated']} by `twin qc`. Every number below is recomputed on each pipeline run.", ""]
     L += ["## Vertical datum audit", "",

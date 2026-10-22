@@ -48,6 +48,7 @@ class Grid:
 
     @classmethod
     def from_bbox(cls, bbox_lonlat, crs, res: float) -> "Grid":
+        """Grid covering a lon/lat bbox in `crs` at `res` (CRS units), snapped to multiples of `res`."""
         crs = CRS.from_user_input(crs)
         w, s, e, n = transform_bounds("EPSG:4326", crs, *bbox_lonlat, densify_pts=21)
         if crs.is_geographic:
@@ -59,17 +60,21 @@ class Grid:
 
     @property
     def shape(self):
+        """(height, width), as numpy arrays on this grid are shaped."""
         return (self.height, self.width)
 
     @property
     def bounds(self):
+        """(west, south, east, north) in the grid's CRS."""
         x0, y1 = self.transform.c, self.transform.f
         return (x0, y1 + self.transform.e * self.height, x0 + self.transform.a * self.width, y1)
 
     def bbox_lonlat(self):
+        """The grid's extent as a lon/lat bbox, densified so it contains the whole grid."""
         return transform_bounds(self.crs, "EPSG:4326", *self.bounds, densify_pts=21)
 
     def profile(self, **kw):
+        """rasterio profile for a single-band float32 GeoTIFF on this grid; keyword arguments override."""
         p = dict(driver="GTiff", crs=self.crs, transform=self.transform, width=self.width,
                  height=self.height, count=1, dtype="float32", nodata=np.nan)
         p.update(kw)
@@ -153,6 +158,8 @@ def nrcan_surface(grid: Grid, kind: str = "dtm", collection: str = "hrdem-mosaic
 # --- Copernicus DEM GLO-30 (EGM2008) ----------------------------------------------
 
 def copernicus_dem(grid: Grid, collection: str = "cop-dem-glo-30") -> tuple[np.ndarray, list[str]]:
+    """Copernicus DEM heights (EGM2008 metres) on `grid`, mosaicked from Earth Search tiles;
+    returns the array and the item ids used."""
     items = list(Client.open(EARTH_SEARCH).search(collections=[collection], bbox=grid.bbox_lonlat()).items())
     out = np.full(grid.shape, np.nan, dtype="float32")
     for it in items:
@@ -183,6 +190,7 @@ def sentinel2_visual(grid: Grid, months=("06", "07", "08", "09"), max_cloud=5, m
     items = sorted(items, key=lambda it: it.properties["eo:cloud_cover"])[:20]
 
     def coverage(it):
+        """Fraction of the probe grid with valid pixels in this scene's visual COG."""
         a = read_into(it.assets["visual"].href, probe, Resampling.nearest)
         return float((np.nan_to_num(a) > 0).mean())
 
@@ -230,6 +238,8 @@ def overture_files(release: str, theme: str, type_: str, bbox) -> list[str]:
 
 
 def overture_buildings(release: str, bbox) -> gpd.GeoDataFrame:
+    """Overture building footprints meeting `bbox` (lon/lat) with height, floors, class, name
+    and source dataset, filtered by bbox inside DuckDB from the release's GeoParquet on S3."""
     w, s, e, n = bbox
     files = overture_files(release, "buildings", "building", bbox)
     con = duckdb.connect()

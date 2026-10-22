@@ -44,6 +44,9 @@ def chart_datum_in_cgvd2013(meta: dict) -> tuple[float, str]:
 
 
 def build(station_code: str, start: datetime, end: datetime, web_dir) -> dict:
+    """CHS station water levels in CGVD2013: the published levels (MWL, MHHW, HAT, record high) and
+    the observed series from `start` to `end` (predicted if none observed), written to
+    `web_dir`/tide.json. Returns everything but the series."""
     st = _get(f"{API}/stations?code={station_code}")[0]
     meta = _get(f"{API}/stations/{st['id']}/metadata")
     offset, offset_from = chart_datum_in_cgvd2013(meta)
