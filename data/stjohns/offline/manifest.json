@@ -59,5 +59,12 @@
       "buildings"
     ],
     "size_mb": 5.7
+  },
+  "features": {
+    "file": "features.gpkg",
+    "layers": {
+      "buildings": 7308,
+      "sar_detections": 12
+    }
   }
 }

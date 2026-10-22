@@ -116,6 +116,30 @@ def geopackage(aoi: AOI, out_path, ais_tracks=None) -> dict:
     return {"file": out_path.name, "layers": layers, "size_mb": round(out_path.stat().st_size / 1e6, 1)}
 
 
+def features(aoi: AOI) -> dict:
+    """All vector products in one WGS 84 GeoPackage, for serving as OGC API Features (deploy/)."""
+    path = aoi.data_dir / "features.gpkg"
+    if path.exists():
+        path.unlink()
+    layers = {}
+    b = gpd.read_parquet(aoi.data_dir / "buildings.parquet").drop(columns=["px"], errors="ignore")
+    layers["buildings"] = b
+    for name in ("ais_tracks", "ais_positions", "sar_detections"):
+        f = aoi.data_dir / f"{name}.parquet"
+        if f.exists():
+            layers[name] = gpd.read_parquet(f)
+    for name, g in layers.items():
+        g = g.to_crs(4326).reset_index(drop=True)
+        if name != "buildings":  # OGC API items need a unique id; buildings have Overture's
+            g.insert(0, "feature_id", range(1, len(g) + 1))
+        for col in g.columns:  # GeoPackage has no timezone-aware or nullable-int types
+            if str(g[col].dtype).startswith(("datetime64", "Int")) or g[col].dtype == object and col != "geometry":
+                g[col] = g[col].astype(str).replace({"<NA>": None, "None": None, "NaT": None})
+        g.to_file(path, layer=name, driver="GPKG")
+    log.info("features %s: %s", path.name, {k: len(v) for k, v in layers.items()})
+    return {"file": path.name, "layers": {k: len(v) for k, v in layers.items()}}
+
+
 def run(aoi: AOI) -> dict:
     out = aoi.data_dir / "offline"
     out.mkdir(exist_ok=True)
@@ -123,6 +147,6 @@ def run(aoi: AOI) -> dict:
     le90 = qc["comparisons"]["Copernicus GLO-30 vs lidar DSM"]["result"]["overall"]["le90_m"]
     cells = [dted_level2(lo, la, out / "dted", le90) for lo, la in dted_cells(aoi.bbox)]
     gpkg = geopackage(aoi, out / f"{aoi.slug}_offline.gpkg", aoi.data_dir / "ais_tracks.parquet")
-    manifest = {"dted": cells, "geopackage": gpkg}
+    manifest = {"dted": cells, "geopackage": gpkg, "features": features(aoi)}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
     return manifest

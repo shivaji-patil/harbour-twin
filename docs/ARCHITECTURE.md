@@ -11,7 +11,7 @@ This document covers how the pieces fit together, what each step reads and write
 Each box is a step of `twin <aoi> <step...>`. Arrows show the real file dependencies between steps; steps without an incoming arrow read only upstream data. `make data` runs them all in order:
 
 ```
-lidar qc terrain imagery buildings ais sar tides package catalog
+lidar qc terrain imagery buildings export3d ais sar tides package catalog
 ```
 
 | Step | Code | Reads | Writes |
@@ -21,12 +21,14 @@ lidar qc terrain imagery buildings ais sar tides package catalog
 | `terrain` | `pipeline.terrain`, `flood.py` | HRDEM DTM, GLO-30, Overture water + piers | `web/data/<aoi>/terrain_{core,context}.bin`, `terrain.json`, `ground_cgvd2013_core.bin`, `flood_level_core.bin` |
 | `imagery` | `pipeline.imagery` | Sentinel-2 L2A `visual` COGs | `sentinel2.jpg`, `sentinel2.json` |
 | `buildings` | `pipeline.buildings`, `tiles3d.py` | Overture buildings, lidar COGs, flood-level grid | `buildings.parquet`, `web/.../buildings/tileset.json` + `tiles/*.glb`, `buildings_summary.json` |
+| `export3d` | `export3d.run` | `buildings.parquet` | `buildings.city.json` (CityJSON 2.0, LoD1, validated) |
 | `record` | `ais.record` | aisstream.io WebSocket | `data/cache/<aoi>/ais_raw.jsonl` (appends) |
 | `ais` | `ais.build` | raw JSONL | `ais_positions.parquet`, `ais_tracks.parquet`, `web/.../ais.czml` |
 | `sar` | `sar.build` | Sentinel-1 RTC COGs, Overture water, AIS positions | `sar_detections.parquet`, `web/.../sar.json`, `sar.jpg` |
 | `tides` | `tides.build` | CHS IWLS station metadata + water levels | `web/.../tide.json` |
-| `package` | `package.run` | GLO-30, QC report, buildings, AIS tracks | `offline/dted/*.dt2`, `offline/<aoi>_offline.gpkg`, `offline/manifest.json` |
+| `package` | `package.run` | GLO-30, QC report, buildings, AIS tracks | `offline/dted/*.dt2`, `offline/<aoi>_offline.gpkg`, `offline/manifest.json`, `features.gpkg` (WGS 84, for OGC API) |
 | `catalog` | `catalog.build` | every product above, `lineage.json` | `data/<aoi>/stac/` (static STAC catalog) |
+| `publish` | `publish.run` | the AOI's products and the viewer | the same tree in S3-compatible object storage (`--to s3://bucket/prefix`) |
 | `passes` | `sar.next_passes` | Sentinel-1 STAC history | prints the next overpasses (no files) |
 
 `lineage.json` is updated by several steps (upstream item ids, building summary, SAR scene) and is the source of the STAC `processing:lineage` and `source_items` fields.
@@ -45,11 +47,13 @@ lidar qc terrain imagery buildings ais sar tides package catalog
 | `pipeline.py` | The elevation and city-model steps, composed from the modules above. |
 | `flood.py` | Priority-flood: the lowest still-water level at which the sea reaches each cell. |
 | `tiles3d.py` | Writes OGC 3D Tiles 1.1: one glTF per tile, with `EXT_mesh_features` + `EXT_structural_metadata` so every building is pickable and styleable. |
+| `export3d.py` | CityJSON 2.0: LoD1 solids with outward normals and semantic surfaces, BuildingParts for multi-part footprints, a compound EPSG CRS, and its own validator (official schema + closed, outward-facing shells). |
 | `ais.py` | AIS capture (resilient WebSocket recorder), cleaning (impossible jumps, null island, duplicates), gap-based track splitting and CZML. |
 | `sar.py` | Sentinel-1 scene search, CFAR ship detection, AIS interpolation and matching, overpass prediction. |
 | `tides.py` | CHS station levels and observed series, converted from chart datum to CGVD2013. |
 | `package.py` | DTED Level 2 cells (MIL-PRF-89020B grid and header) and the offline GeoPackage. |
 | `catalog.py` | Static STAC catalog with projection, checksums, lineage and the QC verdict. |
+| `publish.py` | Uploads to S3-compatible storage with geospatial content types, keeping the repository layout so relative STAC links and viewer paths resolve in the bucket. |
 
 The dependency rule: step modules depend on `sources`, `datum` and `qc`, never on each other's internals. Steps talk to each other only through files.
 
@@ -64,6 +68,7 @@ Every height carries its vertical datum. Conversions go through `datum.py`, neve
 | Viewer terrain grids | WGS 84 lon/lat | WGS 84 ellipsoid (EPSG:4979) | int16 decimetres |
 | Planner ground + flood grids | WGS 84 lon/lat | CGVD2013 | int16 decimetres |
 | Building attributes (ground, roof, flood level) | — | CGVD2013 | m |
+| CityJSON | UTM NAD83(CSRS) | CGVD2013, declared as one compound CRS (EPSG:6653 Vancouver, 6665 St. John's) | m, 1 mm quantization |
 | 3D Tiles geometry | ECEF via local ENU | WGS 84 ellipsoid | m |
 | Tide levels and series | — | CGVD2013 (from chart datum) | m |
 | DTED Level 2 | WGS 84, 1″ posts | EGM96 (EPSG:5773), by spec | whole m |
@@ -117,7 +122,7 @@ The scene usually appears in the Planetary Computer catalogue within one to a fe
 
 ## 5. Quality gates and tests
 
-`make test` runs 52 tests. `make validate` runs the Khronos glTF validator on every tile.
+`make test` runs 67 tests. On a fresh copy without the git-ignored large files it reports 64 passed, 3 skipped, and the skipped ones say how to get the files. `make validate` runs the Khronos glTF validator on every tile.
 
 | File | What it pins |
 |---|---|
@@ -127,6 +132,8 @@ The scene usually appears in the Planetary Computer catalogue within one to a fe
 | `test_ais_package.py` | AIS cleaning and track splitting, DTED grid geometry and file naming |
 | `test_sar.py` | Integral-image box sums, CFAR on synthetic clutter (ships found, no false alarms, shore ignored), AIS interpolation, matching gates, one-to-one assignment |
 | `test_products.py` | Acceptance tests on the published products of `$(AOI)`: datum-error demo fails the gates, sea surfaces sit at 0 m, tiles and STAC resolve, DTED headers parse |
+| `test_export3d.py` | CityJSON geometry, heights, courtyards, multi-part buildings, the compound CRS, and that the validator rejects an inward face and a schema violation |
+| `test_publish.py` | Content types, that only products and the viewer are uploaded (no cache, secrets or side-cars), and that `features.gpkg` matches its sources |
 
 `make test AOI=stjohns` runs the acceptance tests against the St. John's products.
 
@@ -149,12 +156,29 @@ The St. John's twin, with the planner at record + 1 m (2.20 m CGVD2013, 86 of 7,
 
 ![St. John's harbour twin with the flood planner at record + 1 m](img/stjohns_flood.jpg)
 
-## 7. Extending
+## 7. Serving and publishing
+
+The products are files, so serving them is mostly a question of where they live:
+
+- **Container.** `Dockerfile` packages the pipeline (`docker run -v $PWD/data:/app/data -v $PWD/web:/app/web harbour-twin vancouver all`). Data is mounted, never baked in; `.dockerignore` keeps `.env` and `application/` out of the build context.
+- **Object storage.** `twin <aoi> publish --to s3://bucket/prefix` uploads the AOI's products and the viewer with geospatial content types (COG, GeoParquet, glTF, CityJSON, GeoPackage). Keys mirror the repository layout, so the STAC catalog's relative links and the viewer's data paths resolve inside the bucket. Endpoint and credentials come from the standard `AWS_*` variables, so the same code targets AWS S3, Cloudflare R2 or SeaweedFS/MinIO.
+- **OGC API - Features.** `package` also writes `data/<aoi>/features.gpkg` (WGS 84: buildings, AIS tracks and positions, SAR detections, each with a unique id). `deploy/pygeoapi.config.yml` serves each layer as a collection.
+- **Local stack.** `compose.yaml` runs object storage (SeaweedFS 4.47, anonymous read, CORS on), publishes both cities into it, and starts pygeoapi 0.24.0 and STAC Browser 5.1.0, all pinned.
+
+Checked end to end on 22 Oct 2026: both cities published (195 objects, 264 MB); every asset in both STAC catalogs resolves over HTTP from the bucket; anonymous writes are refused; a 256 x 256 COG window reads by range request in 0.05 s; the OGC API returns all six collections, a downtown bbox query finds the Hyatt at 196.9 m, and `height_flag=1` returns exactly the 717 flagged buildings; the viewer runs from the bucket.
+
+![OGC API - Features: Vancouver buildings](img/ogcapi_features.jpg)
+
+![The viewer served from object storage](img/viewer_from_bucket.jpg)
+
+**Not produced: I3S.** ArcGIS publishes I3S scene layers. The loaders.gl tile-converter 4.5.3 fails to load our 3D Tiles 1.1 glTF content (every tile "Failed to load"; the output is an empty IntegratedMesh labelled EGM96), although the Khronos validator passes all 69 tiles. Rather than ship an empty package, I3S is left out; CityJSON and 3D Tiles cover the open-standard route.
+
+## 8. Extending
 
 - **A new city:** copy `config/stjohns.yaml` and set the bounding boxes, CHS station code, sea check points and specs. Then run `make data AOI=<slug>`, `make test AOI=<slug>` and `make validate AOI=<slug>`, and add an opening camera view to `VIEWS` in `web/app.js` (otherwise the camera looks north from the core area's southern edge). Lidar coverage depends on NRCan HRDEM; check `lidar` reports most of the core as valid.
 - **A new upstream source:** add a reader to `sources.py` that returns an array on a `Grid` (rasters) or a GeoDataFrame (vectors), and record the upstream item ids with `_save_lineage`. If it carries heights, tag its vertical datum and convert through `datum.py`.
 - **A new product:** add a step function, register it in `cli.STEPS` and the `run` table, write outputs under `data/<aoi>/` or `web/data/<aoi>/`, add a STAC item in `catalog.py`, and add an acceptance test to `test_products.py`.
 
-## 8. Diagram sources
+## 9. Diagram sources
 
 The diagrams are generated from Mermaid sources in [`diagrams/`](diagrams/). After editing one, run `.venv/bin/python tools/render_diagrams.py` (it needs Google Chrome or Chromium) to regenerate the PNGs in `img/`. The viewer screenshots were taken from `make serve` in Chrome.

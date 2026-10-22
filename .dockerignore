@@ -1,0 +1,15 @@
+# Secrets and private files never enter the image
+.env
+application/
+# Data is mounted at run time
+data/
+web/data/
+# Local tooling and build output
+.git/
+.venv/
+**/__pycache__/
+.pytest_cache/
+*.egg-info/
+build/
+tools/node_modules/
+docs/

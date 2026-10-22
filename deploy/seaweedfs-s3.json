@@ -1,0 +1,10 @@
+{
+  "identities": [
+    {
+      "name": "publisher",
+      "credentials": [{"accessKey": "harbour", "secretKey": "harbour-twin-local"}],
+      "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+    },
+    {"name": "anonymous", "actions": ["Read", "List"]}
+  ]
+}

@@ -5,7 +5,7 @@ description = "Cloud-native 3D harbour digital twin: STAC-sourced elevation with
 requires-python = ">=3.11"
 dependencies = [
   "numpy", "rasterio", "pyproj", "shapely>=2", "geopandas", "pyogrio", "pyarrow",
-  "duckdb", "pillow", "pystac-client", "pystac", "pyyaml", "trimesh", "mapbox-earcut", "websockets",
+  "duckdb", "pillow", "pystac-client", "pystac", "pyyaml", "trimesh", "mapbox-earcut", "websockets", "boto3",
 ]
 
 [project.optional-dependencies]

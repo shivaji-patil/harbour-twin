@@ -1,0 +1,52 @@
+# Harbour Twin as a small cloud-native stack, locally:
+#   docker compose up --build
+#     http://localhost:8333/harbour-twin/web/index.html   viewer, served from object storage
+#     http://localhost:5000                               OGC API - Features (pygeoapi)
+#     http://localhost:8080                               STAC Browser over the catalog in object storage
+# Expects built products in data/ and web/data/ (`make data`, or the products/ folder).
+# The keys below are throwaway local credentials for the bundled object store, nothing else.
+name: harbour-twin
+
+services:
+  s3:  # S3-compatible object storage (SeaweedFS); anonymous read, like a public bucket
+    image: chrislusf/seaweedfs:4.47
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -s3.allowedOrigins=*
+    ports: ["8333:8333"]
+    volumes:
+      - s3data:/data
+      - ./deploy/seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8333/status || exit 1"]
+      interval: 3s
+      retries: 20
+
+  publish:  # the pipeline image, uploading both cities' products to the bucket, then exiting
+    build: .
+    image: harbour-twin
+    depends_on:
+      s3: {condition: service_healthy}
+    environment:
+      AWS_ENDPOINT_URL: http://s3:8333
+      AWS_ACCESS_KEY_ID: harbour
+      AWS_SECRET_ACCESS_KEY: harbour-twin-local
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - ./data:/app/data:ro
+      - ./web:/app/web:ro
+    entrypoint: ["sh", "-c", "twin vancouver publish --to s3://harbour-twin && twin stjohns publish --to s3://harbour-twin"]
+
+  api:  # OGC API - Features over data/<aoi>/features.gpkg
+    image: geopython/pygeoapi:0.24.0
+    ports: ["5000:80"]
+    volumes:
+      - ./deploy/pygeoapi.config.yml:/pygeoapi/local.config.yml:ro
+      - ./data:/data:ro
+
+  stac:  # STAC Browser reading the catalog straight from object storage
+    image: ghcr.io/radiantearth/stac-browser:5.1.0
+    ports: ["8080:8080"]
+    environment:
+      SB_catalogUrl: http://localhost:8333/harbour-twin/data/vancouver/stac/catalog.json
+
+volumes:
+  s3data:

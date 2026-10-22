@@ -2,7 +2,7 @@ AOI ?= vancouver
 PY  ?= .venv/bin/python
 TWIN = .venv/bin/twin
 
-.PHONY: setup data record passes ais test validate serve clean
+.PHONY: setup data record passes ais test validate serve image publish stack clean
 
 setup:            ## virtualenv + Python deps + glTF validator
 	python3 -m venv .venv && .venv/bin/pip install -q -e '.[dev]' jsonschema
@@ -28,3 +28,12 @@ validate:         ## Khronos glTF validation of every 3D Tiles content file
 
 serve:            ## open http://127.0.0.1:8765/?aoi=$(AOI)
 	$(PY) -m http.server 8765 --directory web --bind 127.0.0.1
+
+image:            ## the pipeline as a container image
+	docker build -t harbour-twin .
+
+publish:          ## upload $(AOI) products + viewer to S3-compatible storage, e.g. make publish TO=s3://bucket
+	$(TWIN) $(AOI) publish --to $(TO)
+
+stack:            ## local object storage + OGC API Features + STAC Browser (see compose.yaml)
+	docker compose up --build

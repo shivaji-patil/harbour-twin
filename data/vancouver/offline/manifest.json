@@ -63,5 +63,14 @@
       "ais_tracks"
     ],
     "size_mb": 7.4
+  },
+  "features": {
+    "file": "features.gpkg",
+    "layers": {
+      "buildings": 5848,
+      "ais_tracks": 769,
+      "ais_positions": 7854,
+      "sar_detections": 77
+    }
   }
 }

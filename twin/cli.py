@@ -6,7 +6,7 @@ import json
 import logging
 import time
 
-from . import ais, catalog, config, export3d, package, pipeline, sar, tides
+from . import ais, catalog, config, export3d, package, pipeline, publish, sar, tides
 
 STEPS = ["lidar", "qc", "terrain", "imagery", "buildings", "export3d", "ais", "sar", "tides", "package", "catalog"]
 
@@ -26,8 +26,9 @@ def _ais_window(aoi):
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="twin", description=__doc__)
     ap.add_argument("aoi", help="config/<aoi>.yaml")
-    ap.add_argument("steps", nargs="+", help=f"any of {STEPS}, 'all', 'record' or 'passes'")
+    ap.add_argument("steps", nargs="+", help=f"any of {STEPS}, 'all', 'record', 'passes' or 'publish'")
     ap.add_argument("--minutes", type=float, default=120, help="AIS capture length for 'record'")
+    ap.add_argument("--to", help="destination for 'publish', e.g. s3://bucket/prefix")
     ap.add_argument("--scene", help="Sentinel-1 RTC item id for 'sar' (default: best match to the AIS capture)")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -47,6 +48,7 @@ def main(argv=None):
         "package": lambda: package.run(aoi),
         "catalog": lambda: catalog.build(aoi),
         "record": lambda: ais.record(aoi.ais_bbox, raw, a.minutes),
+        "publish": lambda: publish.run(aoi, a.to),
         "passes": lambda: {"next_sentinel1_passes": sar.next_passes(aoi.ais_bbox)},
     }
     steps = STEPS if a.steps == ["all"] else a.steps

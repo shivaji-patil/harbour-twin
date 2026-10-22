@@ -6,6 +6,8 @@ flowchart TB
   CLI --> TIDE["tides.py<br/>CHS levels → CGVD2013"]
   CLI --> PKG["package.py<br/>DTED2 · GeoPackage"]
   CLI --> CAT["catalog.py<br/>STAC items"]
+  CLI --> EXP["export3d.py<br/>CityJSON + validator"]
+  CLI --> PUB["publish.py<br/>S3-compatible upload"]
   PIPE --> SRC["sources.py<br/>STAC search · windowed COG reads · DuckDB GeoParquet"]
   PIPE --> DAT["datum.py<br/>explicit PROJ vertical pipelines"]
   PIPE --> QCM["qc.py<br/>bias · NMAD · LE90 · gates · report"]

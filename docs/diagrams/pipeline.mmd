@@ -1,6 +1,5 @@
 flowchart LR
   lidar["<b>lidar</b><br/>NRCan HRDEM 1 m<br/>→ DTM · DSM · nDSM COGs"]
-  qc["<b>qc</b><br/>GLO-30 · MRDEM-30 vs lidar<br/>→ QC report · gates"]
   terrain["<b>terrain</b><br/>lidar · GLO-30 · Overture water<br/>→ heightmaps · flood levels"]
   imagery["<b>imagery</b><br/>Sentinel-2 L2A<br/>→ true-colour drape"]
   buildings["<b>buildings</b><br/>Overture footprints<br/>→ GeoParquet · 3D Tiles 1.1"]
@@ -10,7 +9,11 @@ flowchart LR
   tides["<b>tides</b><br/>CHS IWLS<br/>→ levels · series (CGVD2013)"]
   package["<b>package</b><br/>GLO-30 → EGM96<br/>→ DTED2 · GeoPackage"]
   catalog["<b>catalog</b><br/>reads every product above<br/>→ static STAC + lineage"]
+  export3d["<b>export3d</b><br/>→ CityJSON 2.0, LoD1"]
+  qc["<b>qc</b><br/>GLO-30 · MRDEM-30 vs lidar<br/>→ QC report · gates"]
+  publish["<b>publish</b><br/>→ S3 object storage<br/>(STAC, COGs, viewer)"]
   lidar -- "DTM · DSM" --> buildings
+  buildings --> export3d
   terrain -- "flood level grid" --> buildings
   record --> ais
   ais -- "positions" --> sar
@@ -19,3 +22,4 @@ flowchart LR
   buildings --> package
   ais -- tracks --> package
   package --> catalog
+  catalog --> publish

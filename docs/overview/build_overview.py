@@ -104,7 +104,7 @@ def big_picture():
         b.append(f'<rect x="355" y="{y - 16}" width="290" height="34" rx="6" fill="{BG3}" stroke="{LINE}"/>')
         b.append(text(500, y + 1, s, FG, 12.5))
     outs = [("3D viewer in a browser", "city, ships, radar, floods", BLUE), ("Quality report", "pass / fail against specs", YELLOW),
-            ("Offline map files", "for devices without internet", BLUE), ("Data catalogue", "what, where, made from what", BLUE)]
+            ("Offline map files", "for devices without internet", BLUE), ("Catalogue + web APIs", "STAC, OGC API, CityJSON", BLUE)]
     for i, (t, s, c) in enumerate(outs):
         y = 52 + i * 92
         b.append(box(750, y, 230, 62, t, s, c))
@@ -115,7 +115,7 @@ def big_picture():
 def run_flow():
     steps = [("1  Lidar", ["Ground and rooftop", "heights, 1 m detail"]), ("2  Quality check", ["Score satellite", "elevation vs lidar"]),
              ("3  Terrain + flood", ["3D ground and", "where water reaches"]), ("4  Satellite photo", ["Cloud-free summer", "colour image"]),
-             ("5  Buildings", ["Outlines + measured", "heights → 3D tiles"]), ("6  Ships (AIS)", ["Clean recorded", "tracks for replay"]),
+             ("5  Buildings", ["Measured heights →", "3D Tiles + CityJSON"]), ("6  Ships (AIS)", ["Clean recorded", "tracks for replay"]),
              ("7  Radar ships", ["Find ships in", "Sentinel-1, match AIS"]), ("8  Tides", ["Observed water", "level, same clock"]),
              ("9  Offline package", ["DTED + GeoPackage", "for field devices"]), ("10  Catalogue", ["Describe every", "product (STAC)"])]
     b = []
@@ -133,7 +133,7 @@ def run_flow():
                 b.append(arrow([(x + w / 2, y + h), (x + w / 2, y + 130)]))
             else:
                 b.append(arrow([(x, y + h / 2), (x - gap, y + h / 2)]))
-    b.append(text(500, 248, "make data  runs all ten steps in order; each step can also be re-run on its own", DIM, 12.5))
+    b.append(text(500, 248, "make data  runs every step in order; each step can also be re-run on its own", DIM, 12.5))
     return svg(1000, 262, b, "What happens when you run make data")
 
 
@@ -190,7 +190,7 @@ def folder_map():
         x = 15 + i * 197
         b.append(arrow([(500, 65), (500, 85), (x + 88, 85), (x + 88, 105)]))
         b.append(box(x, 105, 176, 56, t, s, c))
-    kids = [("twin/", "the pipeline (Python)"), ("web/", "the 3D viewer + its data"), ("tests/", "52 automated checks"),
+    kids = [("twin/", "the pipeline (Python)"), ("web/", "the 3D viewer + its data"), ("tests/", "67 automated checks"),
             ("docs/", "architecture, data, images"), ("config/", "one file per city"), ("data/", "reports, catalogue")]
     for i, (t, s) in enumerate(kids):
         x, y = 15 + (i % 3) * 240, 205 + (i // 3) * 64
@@ -206,12 +206,13 @@ def reproduce_flow():
     b = [diamond(500, 55, 300, 80, ["What do you", "want to do?"], PURPLE)]
     paths = [("A. Just look", ["2 minutes", "Python 3 + internet"], GREEN), ("B. Run the checks", ["5 minutes", "+ Node.js, make"], BLUE),
              ("C. Rebuild everything", [f"{REBUILD_MIN} minutes", "downloads only what it needs"], ORANGE),
-             ("D. Record your own ships", ["2 hours of recording", "free aisstream.io key"], RED)]
+             ("D. Record your own ships", ["2 hours of recording", "free aisstream.io key"], RED),
+             ("E. Serve it (Docker)", ["object storage,", "OGC API, STAC Browser"], PURPLE)]
     for i, (t, s, c) in enumerate(paths):
-        x = 15 + i * 247
-        b.append(arrow([(500, 95), (500, 115), (x + 113, 115), (x + 113, 140)], c))
-        b.append(box(x, 140, 226, 76, t, s, c))
-    return svg(1000, 230, b, "Four ways to reproduce the work")
+        x = 10 + i * 198
+        b.append(arrow([(500, 95), (500, 115), (x + 90, 115), (x + 90, 140)], c))
+        b.append(box(x, 140, 182, 76, t, s, c))
+    return svg(1000, 230, b, "Five ways to reproduce the work")
 
 
 # ------------------------------------------------------------------ page
@@ -306,7 +307,7 @@ and must pass published accuracy specifications before it is used.</li>
 <div class="card" style="--c:{ORANGE}"><b>77</b><span>ships found by satellite radar in one Vancouver pass, including the anchored freighters in English Bay</span></div>
 <div class="card" style="--c:{BLUE}"><b>347</b><span>vessels recorded live over 4 hours: 7,854 cleaned position reports</span></div>
 <div class="card" style="--c:{GREEN}"><b>98.7%</b><span>of 5,848 building heights measured by laser, not guessed</span></div>
-<div class="card" style="--c:{YELLOW}"><b>52</b><span>automated checks that must pass before results are published</span></div>
+<div class="card" style="--c:{YELLOW}"><b>67</b><span>automated checks that must pass before results are published</span></div>
 </div>
 </section>
 
@@ -326,7 +327,7 @@ Everything is read directly from the organisations that publish it; nothing is c
 </section>
 
 <section id="run"><h2><span class="n">04</span>How a run works</h2>
-<p class="sub">One command builds the whole twin, in ten steps. Each step saves its results, so any step can be re-run alone.</p>
+<p class="sub">One command builds the whole twin, step by step. Each step saves its results, so any step can be re-run alone.</p>
 <div class="diagram">{run_flow()}<p class="cap">Steps 6 and 7 (orange) are the ship work. Step 2 is the quality check that decides
 which elevation data is good enough to use.</p></div>
 </section>
@@ -365,7 +366,7 @@ is complete on its own; <code>products/</code> only saves you the rebuild of the
 </section>
 
 <section id="reproduce"><h2><span class="n">08</span>Reproduce it yourself</h2>
-<p class="sub">Pick the path that matches what you want. Each one builds on the one before.</p>
+<p class="sub">Pick the path that matches what you want. Each one builds on the ones before it.</p>
 <div class="diagram">{reproduce_flow()}</div>
 <p><b>Before you start:</b> download the whole <code>harbour-twin</code> folder (Google Drive gives you a .zip; unzip it).
 Open a terminal in the unzipped folder. Linux and macOS work directly; on Windows, use WSL (Windows Subsystem for Linux).</p>
@@ -387,16 +388,16 @@ data files unless it is served, which is what the first command does.</p></div>
 make setup        # installs Python packages and the 3D-model validator (about 30 s)
 make test         # the automated checks
 make validate     # checks every 3D building tile against the official standard''')}
-<p class="expect">Expect: <code>49 passed, 3 skipped</code>, then <code>{{"files":69,"errors":0,"warnings":0}}</code>.
+<p class="expect">Expect: <code>64 passed, 3 skipped</code>, then <code>{{"files":69,"errors":0,"warnings":0}}</code>.
 The 3 skipped checks need the large files. To include them, copy them in and run the checks again:</p>
 {code('''cp -r ../products/data/* data/
-make test         # now 52 passed
+make test         # now 67 passed
 make serve        # same viewer as path A, using the installed Python''')}</div>
 
 <div class="path" style="--c:{ORANGE}"><h3>C. Rebuild everything from the original sources</h3>
 <p class="need">Needs: path B done, and a normal internet connection. It reads only the parts of each dataset it
 needs, not whole files.</p>
-{code(f'''make data                 # Vancouver: all ten steps, {REBUILD_MIN} minutes
+{code(f'''make data                 # Vancouver: every step, {REBUILD_MIN} minutes
 make test validate        # the same checks, now on what you just built
 make data AOI=stjohns     # St. John's, same pipeline, different settings file
 make test AOI=stjohns''')}
@@ -414,6 +415,14 @@ make ais                  # cleans the tracks, finds radar ships, matches them''
 AIS ships the radar did not see. The viewer's SAR panel shows the same.</p>
 <p>Recording adds to any earlier recording. To keep them apart, move the old one first:
 <code>mv data/cache/vancouver/ais_raw.jsonl data/cache/vancouver/ais_raw_old.jsonl</code>.</p></div>
+
+<div class="path" style="--c:{PURPLE}"><h3>E. Serve it like a product (Docker)</h3>
+<p class="need">Needs: the large files in <code>data/</code> (path B or C) and Docker with the Compose plugin.</p>
+{code("docker compose up --build        # first run downloads the images (a few minutes)")}
+<p class="expect">Expect, once the publish step has exited: the viewer at
+<code>http://localhost:8333/harbour-twin/web/index.html</code>, served from object storage; the data as a web service
+(OGC API) at <code>http://localhost:5000</code>; and the catalogue at <code>http://localhost:8080</code>.
+Stop with <code>Ctrl+C</code>, then <code>docker compose down</code>.</p></div>
 
 <h3>If something goes wrong</h3>
 <table>
@@ -449,6 +458,9 @@ AIS ships the radar did not see. The viewer's SAR panel shows the same.</p>
 <dt>Digital twin</dt><dd>A working computer copy of a real place, built from measurements and kept checkable.</dd>
 <dt>STAC</dt><dd>SpatioTemporal Asset Catalog: a standard way to describe and find map and satellite data; used here both to find inputs and describe outputs.</dd>
 <dt>DTED, GeoPackage</dt><dd>Standard map-file formats used on devices that work without internet, such as ships and drones.</dd>
+<dt>CityJSON</dt><dd>An open format for 3D city models (the JSON form of CityGML), read by city-planning tools. The buildings are exported to it as simple closed blocks.</dd>
+<dt>OGC API - Features</dt><dd>A standard web interface for map data: any GIS can ask it for "buildings in this box" or "flagged buildings" and get them back.</dd>
+<dt>Object storage</dt><dd>Cloud file storage such as Amazon S3. Publishing the products there lets anyone read them over the web without a special server.</dd>
 <dt>3D Tiles</dt><dd>An open standard for streaming 3D city models to a web browser.</dd>
 </dl>
 </section>

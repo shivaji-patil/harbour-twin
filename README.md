@@ -23,11 +23,13 @@ It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, l
 | **QCs every elevation product** | Bias, RMSE, NMAD, LE90/LE95 by slope class against lidar, gated against product specs. Sea-surface sanity checks. A deliberate datum-error case proves the gates catch it. |
 | **Measures building heights** | DSM − DTM from lidar for 98.7% of buildings. Heights that disagree with Overture/OSM are flagged for review, not silently overwritten. |
 | **Publishes 3D Tiles 1.1** | glTF with `EXT_mesh_features` + `EXT_structural_metadata`, so every building is clickable and styleable by height, source, QC flag or flood level. 69/69 tiles pass the Khronos glTF validator with 0 errors and 0 warnings. |
+| **Exports CityJSON** | The same buildings as CityJSON 2.0 LoD1 solids (floor, roof and walls, courtyards as holes, multi-part footprints as BuildingParts) in a compound EPSG CRS (UTM NAD83(CSRS) + CGVD2013), checked against the official schema and for closed, outward-facing solids. |
 | **Integrates live feeds** | AIS (aisstream.io WebSocket → GeoParquet → CZML), observed water levels and station datums (DFO-CHS IWLS), radar (ECCC GeoMet WMS), current weather (Open-Meteo). |
 | **Cross-checks AIS against radar** | CFAR ship detection on Sentinel-1 backscatter (Planetary Computer STAC), matched to AIS interpolated to the overpass time. Ships SAR sees but AIS doesn't report are dark-vessel candidates for review. `make passes` predicts the next overpass to record AIS across. |
 | **Plans for floods** | Priority-flood gives the still-water level at which the sea actually *reaches* each cell and each building, not a bathtub threshold. Presets come from CHS station levels converted to CGVD2013. |
 | **Packages for denied environments** | DTED Level 2 (MIL-PRF-89020B grid and header, with vertical accuracy filled from the measured LE90) and a GeoPackage holding a float32 elevation coverage, buildings and AIS tracks. |
 | **Describes its outputs** | A static STAC catalog with projection, checksums, lineage back to upstream STAC items, and the QC verdict. |
+| **Serves and publishes** | A container image of the pipeline; `twin <aoi> publish` uploads products and viewer to S3-compatible object storage with correct content types, so the STAC catalog, COGs and the viewer work straight from the bucket; `docker compose up` adds OGC API - Features (pygeoapi) and STAC Browser on top. |
 
 ## What the QC found
 
@@ -108,7 +110,7 @@ flowchart LR
 - **Flag, don't resolve.** When lidar and Overture disagree on a building's height, the building keeps the lidar value and carries a `height_flag`, visible in the viewer and in the GeoParquet.
 - **Precompute in the pipeline, keep the client thin.** The flood level is a per-building attribute and a per-cell grid, so the browser only compares a number against the slider.
 - **No vendor tokens.** Terrain is served from two small int16 grids through `CustomHeightmapTerrainProvider`, so the viewer runs anywhere without a Cesium ion key.
-- **One command rebuilds and checks the twin.** `make data test validate` re-runs the whole pipeline from upstream, then gates on 52 unit and acceptance tests plus the glTF validator. The viewer is a static folder (`web/`) that any web server can host.
+- **One command rebuilds and checks the twin.** `make data test validate` re-runs the whole pipeline from upstream, then gates on 67 unit and acceptance tests plus the glTF validator. The viewer is a static folder (`web/`) that any web server can host.
 
 ## Run it
 
@@ -123,6 +125,9 @@ make record MIN=120 && make ais       # capture fresh vessel traffic (+ SAR cros
 make passes                           # next Sentinel-1 overpasses: record AIS across one
 make data AOI=stjohns                 # another city: config/stjohns.yaml
 make test AOI=stjohns                 # acceptance tests on that city's products
+
+make image                            # the pipeline as a container image
+docker compose up --build             # object storage + OGC API Features + STAC Browser, see below
 ```
 
 A new city is one YAML file: AOI bounding boxes, a CHS tide station, sea check points and the specs to gate against. How the steps, modules and datums fit together is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -132,10 +137,25 @@ twin/            pipeline package (sources, datum, qc, flood, tiles3d, ais, sar,
 config/          one YAML per city
 tests/           unit tests + acceptance tests on the published products
 web/             CesiumJS viewer; web/data/<aoi>/ is what the pipeline publishes for it
-data/<aoi>/      QC report, lineage, GeoParquet, STAC catalog (rasters/DTED/GPKG rebuilt by `make data`)
+data/<aoi>/      QC report, lineage, GeoParquet, CityJSON, features.gpkg, STAC catalog (rasters/DTED/offline GPKG rebuilt by `make data`)
+deploy/          pygeoapi and object-storage config for compose.yaml
 tools/           Khronos glTF validator runner, diagram renderer
 docs/            architecture, data sources, diagrams and screenshots
 ```
+
+## Serve it like a product
+
+`docker compose up --build` runs the twin as a small cloud-native stack on your machine, using the products already in `data/` and `web/data/`:
+
+| Service | Address | What it is |
+|---|---|---|
+| Object storage (SeaweedFS, S3 API) | http://localhost:8333/harbour-twin/web/index.html | The viewer, STAC catalog, COGs, 3D Tiles and CityJSON, uploaded by `twin <aoi> publish` and read anonymously, the way a public bucket serves them |
+| OGC API - Features (pygeoapi) | http://localhost:5000 | Buildings, AIS tracks and positions, and SAR detections for both cities, with bbox and property queries |
+| STAC Browser | http://localhost:8080 | The catalog, browsed straight from object storage |
+
+The same `publish` step targets AWS S3, Cloudflare R2 or any S3-compatible store through the standard `AWS_*` environment variables. A 256 x 256 window of the lidar DTM reads from the bucket in 0.05 s by HTTP range request, so the COGs stay cloud-native once published.
+
+<img src="docs/img/ogcapi_features.jpg" width="49%" alt="OGC API Features: Vancouver buildings on a map, with attributes"> <img src="docs/img/stac_browser.jpg" width="49%" alt="STAC Browser listing the catalog items, read from object storage">
 
 ## Built with AI, checked by machines
 
@@ -157,6 +177,7 @@ I built this in one day with an AI coding agent (Claude Code) writing most of th
 - **The lidar epoch differs from today's city.** New buildings fall back to Overture or floor-count heights, and their `height_source` says so.
 - **The SAR cross-check needs AIS at the overpass.** The bundled capture misses the Sentinel-1 passes, so the 77 radar targets of 10 Oct are shown without it. The CFAR threshold was set by inspection, not from a labelled set. See [the SAR section](docs/ARCHITECTURE.md#4-sar--ais-cross-check).
 - **AIS comes from aisstream.io's volunteer receivers.** Coverage and update rates are uneven, and many vessels never send static data during a short capture ("unknown" type).
+- **No I3S (ArcGIS scene layer) yet.** The loaders.gl tile-converter 4.5.3 fails to load our 3D Tiles 1.1 content (the Khronos validator passes it), so an SLPK is not produced rather than shipped empty.
 - **DTED is produced for interoperability testing.** It is built from GLO-30, so its accuracy is GLO-30's, measured and written into the header.
 
 ## Data and licences
