@@ -184,4 +184,4 @@ I built this in one day with an AI coding agent (Claude Code) writing most of th
 
 NRCan HRDEM/MRDEM (Open Government Licence – Canada) · Copernicus DEM GLO-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA · Contains modified Copernicus Sentinel-1 and Sentinel-2 data 2026 (Sentinel-1 RTC via Microsoft Planetary Computer, CC BY 4.0) · Overture Maps Foundation (ODbL / CDLA-Permissive-2.0, per theme) · © OpenStreetMap contributors · AIS via aisstream.io · Water levels © Fisheries and Oceans Canada (CHS) · ECCC MSC GeoMet · Open-Meteo (CC BY 4.0) · Basemap © CARTO.
 
-Code: MIT. Author: Shivaji Patil.
+**Licence.** Code and documentation: [PolyForm Noncommercial 1.0.0](LICENSE). Free to read, run, modify and share for noncommercial purposes (personal use, research, education, evaluation); any commercial use needs written permission from the author (shivaji@shivajipatil.com). Data products derived from the sources above stay under those sources' licences (for example ODbL for buildings derived from Overture Maps and OpenStreetMap); this licence does not change them. Author: Shivaji Patil.
