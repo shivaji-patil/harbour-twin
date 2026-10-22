@@ -1,12 +1,17 @@
 """Build docs/OVERVIEW.html: a plain-language, self-contained overview (Monokai Pro colours).
 
-    python docs/overview/build_overview.py
+    python docs/overview/build_overview.py          # HTML
+    python docs/overview/build_overview.py --pdf    # + OVERVIEW.pdf (needs Chrome): one long page, for reading in Drive
 
 Diagrams are inline SVG drawn here; screenshots are embedded as base64, so the
 page has no external files, fonts or scripts and opens from a download.
 """
 import base64
 import html
+import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -179,7 +184,7 @@ def qc_flow():
 
 def folder_map():
     b = [box(380, 15, 240, 50, "harbour-twin/", "the shared folder", PURPLE)]
-    top = [("00_START_HERE.pdf", "2-page summary", YELLOW), ("OVERVIEW.html", "this page", YELLOW),
+    top = [("00_START_HERE.pdf", "2-page summary", YELLOW), ("OVERVIEW .html/.pdf", "this page", YELLOW),
            ("demo.mp4", "30-second tour", YELLOW), ("code/", "everything to run it", BLUE), ("products/", "large files, optional", GREEN)]
     for i, (t, s, c) in enumerate(top):
         x = 15 + i * 197
@@ -274,6 +279,7 @@ td:first-child{{color:var(--yellow);white-space:nowrap}}
 dl.gloss{{display:grid;grid-template-columns:200px 1fr;gap:8px 20px;max-width:900px}}
 dl.gloss dt{{color:var(--orange);font-weight:600}} dl.gloss dd{{margin:0;color:#E1DFE2}}
 footer{{border-top:1px solid var(--line);margin-top:50px;padding-top:18px;color:var(--dim);font-size:13px}}
+@media print{{*{{-webkit-print-color-adjust:exact;print-color-adjust:exact}}@page{{size:Letter;margin:0}}html,body{{background:var(--bg)}}nav{{display:none}}main{{padding:0 36px 30px}}header.hero{{padding:34px 36px 26px}}section{{padding-top:26px}}.diagram,figure,.card,.path,pre,tr,.note{{break-inside:avoid}}h2,h3{{break-after:avoid}}.two{{grid-template-columns:1fr 1fr}}a{{text-decoration:none}}}}
 @media (max-width:760px){{h1{{font-size:31px}}.two{{grid-template-columns:1fr}}dl.gloss{{grid-template-columns:1fr}}
 td:first-child{{white-space:normal}}.lede{{font-size:17px}}}}
 """
@@ -473,7 +479,27 @@ automated tests and by review. Technical detail: <code>code/docs/ARCHITECTURE.md
 </main></body></html>"""
 
 
+def pdf(src: Path, out: Path, width=1100, height=10200):
+    """Print `src` as one continuous page (Drive's viewer scrolls it; no page breaks to split diagrams)."""
+    chrome = next(filter(None, map(shutil.which, ("google-chrome", "chromium", "chromium-browser"))), None)
+    if not chrome:
+        sys.exit("--pdf needs Google Chrome or Chromium on PATH")
+    with tempfile.TemporaryDirectory() as tmp:
+        while True:  # grow the page until everything fits on one
+            page_css = f"<style>@media print{{@page{{size:{width}px {height}px;margin:0}}html,body{{min-height:100%}}}}</style>"
+            tmp_html = Path(tmp) / "single.html"
+            tmp_html.write_text(src.read_text().replace("</head>", page_css + "</head>", 1))
+            subprocess.run([chrome, "--headless=new", "--disable-gpu", f"--user-data-dir={Path(tmp) / 'profile'}",
+                            "--no-pdf-header-footer", f"--print-to-pdf={out}", tmp_html.as_uri()], check=True, capture_output=True)
+            if out.read_bytes().count(b"/Type /Page\n") <= 1 and b"/Count 1" in out.read_bytes() or height > 20000:
+                return
+            height += 400
+
+
 if __name__ == "__main__":
     out = ROOT / "docs" / "OVERVIEW.html"
     out.write_text(page())
     print(out, f"{out.stat().st_size / 1e3:.0f} kB")
+    if "--pdf" in sys.argv:
+        pdf(out, out.with_suffix(".pdf"))
+        print(out.with_suffix(".pdf"), f"{out.with_suffix('.pdf').stat().st_size / 1e3:.0f} kB")
