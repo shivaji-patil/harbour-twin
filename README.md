@@ -1,9 +1,9 @@
 # Harbour Twin
 
 **A 3D digital twin of Vancouver Harbour, built entirely from public data and checked automatically.**
-It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, live-recorded AIS vessel traffic, observed tides, a connected coastal-flood planner, and DTED / GeoPackage packages for platforms that operate offline.
+It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, live-recorded AIS vessel traffic cross-checked against Sentinel-1 radar, observed tides, a connected coastal-flood planner, and DTED / GeoPackage packages for platforms that operate offline. The same pipeline builds St. John's Harbour from one more YAML file.
 
-**Run the viewer:** `make serve`, then open http://127.0.0.1:8765 · [QC report](data/vancouver/QC_REPORT.md) · [STAC catalog](data/vancouver/stac/catalog.json) · Offline products: `data/vancouver/offline/`
+**Run the viewer:** `make serve`, then open http://127.0.0.1:8765 · [QC report](data/vancouver/QC_REPORT.md) · [STAC catalog](data/vancouver/stac/catalog.json) · Offline products: `data/vancouver/offline/` · [Architecture](docs/ARCHITECTURE.md) · [Data sources](docs/DATA.md) · St. John's: http://127.0.0.1:8765/?aoi=stjohns
 
 ![Downtown Vancouver from False Creek: lidar buildings coloured by height, AIS vessels with 30-minute trails in Burrard Inlet, water level following the observed tide](docs/img/hero.jpg)
 
@@ -20,6 +20,7 @@ It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, l
 | **Measures building heights** | DSM − DTM from lidar for 98.7% of buildings. Heights that disagree with Overture/OSM are flagged for review, not silently overwritten. |
 | **Publishes 3D Tiles 1.1** | glTF with `EXT_mesh_features` + `EXT_structural_metadata`, so every building is clickable and styleable by height, source, QC flag or flood level. 69/69 tiles pass the Khronos glTF validator with 0 errors and 0 warnings. |
 | **Integrates live feeds** | AIS (aisstream.io WebSocket → GeoParquet → CZML), observed water levels and station datums (DFO-CHS IWLS), radar (ECCC GeoMet WMS), current weather (Open-Meteo). |
+| **Cross-checks AIS against radar** | CFAR ship detection on Sentinel-1 backscatter (Planetary Computer STAC), matched to AIS interpolated to the overpass time. Ships SAR sees but AIS doesn't report are dark-vessel candidates for review. `make passes` predicts the next overpass to record AIS across. |
 | **Plans for floods** | Priority-flood gives the still-water level at which the sea actually *reaches* each cell and each building, not a bathtub threshold. Presets come from CHS station levels converted to CGVD2013. |
 | **Packages for denied environments** | DTED Level 2 (MIL-PRF-89020B grid and header, with vertical accuracy filled from the measured LE90) and a GeoPackage holding a float32 elevation coverage, buildings and AIS tracks. |
 | **Describes its outputs** | A static STAC catalog with projection, checksums, lineage back to upstream STAC items, and the QC verdict. |
@@ -52,6 +53,10 @@ The lowest levels are mostly structures on piers and floats. This is a planning 
 
 ![Flood planner at record + 1 m: buildings the sea reaches in red, within one more metre in amber; picked building shows its lidar height, ground and flood level](docs/img/flood.jpg)
 
+**SAR × AIS:** the 10 Oct 2026 14:20 UTC Sentinel-1 pass yields 77 ship targets over English Bay and Burrard Inlet, including every anchored freighter. When the AIS capture covers an overpass, each target is labelled matched, dark-vessel candidate or (for AIS-only vessels) not seen. [Method and limits](docs/ARCHITECTURE.md#4-sar--ais-cross-check).
+
+![SAR layer: Sentinel-1 backscatter with detected ships ringed, one target selected](docs/img/sar.jpg)
+
 ## How it is built
 
 ```mermaid
@@ -63,6 +68,7 @@ flowchart LR
     OV[Overture Maps<br/>GeoParquet]
     AIS[aisstream.io<br/>WebSocket]
     CHS[DFO-CHS IWLS<br/>REST]
+    S1[Sentinel-1 RTC<br/>COG]
   end
   subgraph Pipeline["twin (Python)"]
     D[datum.py<br/>explicit PROJ pipelines]
@@ -72,6 +78,7 @@ flowchart LR
     T[tiles3d.py<br/>3D Tiles 1.1 writer]
     P[package.py<br/>DTED2 · GeoPackage]
     C[catalog.py<br/>STAC]
+    SAR[sar.py<br/>CFAR · AIS match]
   end
   subgraph Out["Products"]
     W[CesiumJS viewer<br/>static site]
@@ -84,9 +91,10 @@ flowchart LR
   D --> F --> B
   S2 --> W
   AIS --> W
+  S1 & AIS --> SAR --> W
   CHS --> F
   D --> P --> O
-  B & P & Q --> C --> R
+  B & P & Q & SAR --> C --> R
 ```
 
 **Design choices**
@@ -96,7 +104,7 @@ flowchart LR
 - **Flag, don't resolve.** When lidar and Overture disagree on a building's height, the building keeps the lidar value and carries a `height_flag`, visible in the viewer and in the GeoParquet.
 - **Precompute in the pipeline, keep the client thin.** The flood level is a per-building attribute and a per-cell grid, so the browser only compares a number against the slider.
 - **No vendor tokens.** Terrain is served from two small int16 grids through `CustomHeightmapTerrainProvider`, so the viewer runs anywhere without a Cesium ion key.
-- **One command rebuilds and checks the twin.** `make data test validate` re-runs the whole pipeline from upstream, then gates on 44 unit and acceptance tests plus the glTF validator. The viewer is a static folder (`web/`) that any web server can host.
+- **One command rebuilds and checks the twin.** `make data test validate` re-runs the whole pipeline from upstream, then gates on 52 unit and acceptance tests plus the glTF validator. The viewer is a static folder (`web/`) that any web server can host.
 
 ## Run it
 
@@ -107,19 +115,22 @@ make test validate          # unit + acceptance tests, glTF validation
 make serve                  # http://127.0.0.1:8765
 
 echo "AISSTREAM_API_KEY=..." > .env   # free key from aisstream.io
-make record MIN=120 && make ais       # capture fresh vessel traffic
+make record MIN=120 && make ais       # capture fresh vessel traffic (+ SAR cross-check)
+make passes                           # next Sentinel-1 overpasses: record AIS across one
 make data AOI=stjohns                 # another city: config/stjohns.yaml
+make test AOI=stjohns                 # acceptance tests on that city's products
 ```
 
-A new city is one YAML file: AOI bounding boxes, a CHS tide station, sea check points and the specs to gate against.
+A new city is one YAML file: AOI bounding boxes, a CHS tide station, sea check points and the specs to gate against. How the steps, modules and datums fit together is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ```
-twin/            pipeline package (sources, datum, qc, flood, tiles3d, ais, tides, package, catalog, cli)
+twin/            pipeline package (sources, datum, qc, flood, tiles3d, ais, sar, tides, package, catalog, cli)
 config/          one YAML per city
 tests/           unit tests + acceptance tests on the published products
 web/             CesiumJS viewer; web/data/<aoi>/ is what the pipeline publishes for it
 data/<aoi>/      QC report, lineage, GeoParquet, STAC catalog (rasters/DTED/GPKG rebuilt by `make data`)
-tools/           Khronos glTF validator runner
+tools/           Khronos glTF validator runner, diagram renderer
+docs/            architecture, data sources, diagrams and screenshots
 ```
 
 ## Built with AI, checked by machines
@@ -131,6 +142,8 @@ I built this in one day with an AI coding agent (Claude Code) writing most of th
 - **The water mask was wrong.** Overlaying the flood mask on Sentinel-2 (pictured below) showed lidar TIN interpolation "fans" across the harbour counted as land. The fix uses the OSM coastline and pier polygons from Overture.
 - **PROJ's defaults are a ballpark.** The datum audit exposed the 0.3–1.05 m frame error in PROJ's default CGVD2013 transform. That is now a regression test.
 - **A test failed that shouldn't have.** A round-trip test failed at the micrometre level because the Helmert step moves points about 1 m horizontally. The tolerance was set from physics, not loosened until green.
+- **A second city broke two assumptions.** Building St. John's on a fresh machine showed Pillow was missing from the dependencies, and that the CHS St. John's station publishes no CGVD2013 offset at all. Its chart datum now goes through the NAD83(CSRS) offset and the CGG2013a geoid (−1.22 m), cross-checked against its CGVD28 offset and pinned by a test.
+- **Radar sees bridges as ships.** Looking at the detections on the SAR image showed a "ship" on the Lions Gate Bridge, which SAR images as several offset lines. Bridges are now masked with a wider buffer. The same review showed St. John's is imaged in HH/HV rather than VV/VH, so the detector now works on either pair.
 
 <img src="docs/img/watermask_qc.jpg" width="420" alt="Flood-mask QC overlay on Sentinel-2: water in blue, land reached at the 2022 record level in orange">
 
@@ -138,11 +151,12 @@ I built this in one day with an AI coding agent (Claude Code) writing most of th
 
 - **The flood screen is still-water and connected only.** It ignores waves, wind setup, duration, drainage and flood defences that aren't in the DTM.
 - **The lidar epoch differs from today's city.** New buildings fall back to Overture or floor-count heights, and their `height_source` says so.
+- **The SAR cross-check needs AIS at the overpass.** The bundled capture misses the Sentinel-1 passes, so the 77 radar targets of 10 Oct are shown without it. The CFAR threshold was set by inspection, not from a labelled set. See [the SAR section](docs/ARCHITECTURE.md#4-sar--ais-cross-check).
 - **AIS comes from aisstream.io's volunteer receivers.** Coverage and update rates are uneven, and many vessels never send static data during a short capture ("unknown" type).
 - **DTED is produced for interoperability testing.** It is built from GLO-30, so its accuracy is GLO-30's, measured and written into the header.
 
 ## Data and licences
 
-NRCan HRDEM/MRDEM (Open Government Licence – Canada) · Copernicus DEM GLO-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA · Contains modified Copernicus Sentinel-2 data 2026 · Overture Maps Foundation (ODbL / CDLA-Permissive-2.0, per theme) · © OpenStreetMap contributors · AIS via aisstream.io · Water levels © Fisheries and Oceans Canada (CHS) · ECCC MSC GeoMet · Open-Meteo (CC BY 4.0) · Basemap © CARTO.
+NRCan HRDEM/MRDEM (Open Government Licence – Canada) · Copernicus DEM GLO-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA · Contains modified Copernicus Sentinel-1 and Sentinel-2 data 2026 (Sentinel-1 RTC via Microsoft Planetary Computer, CC BY 4.0) · Overture Maps Foundation (ODbL / CDLA-Permissive-2.0, per theme) · © OpenStreetMap contributors · AIS via aisstream.io · Water levels © Fisheries and Oceans Canada (CHS) · ECCC MSC GeoMet · Open-Meteo (CC BY 4.0) · Basemap © CARTO.
 
 Code: MIT. Author: Shivaji Patil.

@@ -5,6 +5,7 @@ pipeline has not been run. They are the gate between "the code ran" and
 "the products are fit to ship".
 """
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +14,7 @@ import pytest
 import rasterio
 
 ROOT = Path(__file__).resolve().parents[1]
-AOI = "vancouver"
+AOI = os.environ.get("TWIN_AOI", "vancouver")  # make test AOI=<aoi>
 DATA, WEB = ROOT / "data" / AOI, ROOT / "web" / "data" / AOI
 pytestmark = pytest.mark.skipif(not (DATA / "qc_report.json").exists(), reason="pipeline not run")
 

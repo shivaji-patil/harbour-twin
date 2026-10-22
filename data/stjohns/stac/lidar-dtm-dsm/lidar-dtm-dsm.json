@@ -1,0 +1,166 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/processing/v1.2.0/schema.json"
+  ],
+  "id": "lidar-dtm-dsm",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -52.67,
+          47.548
+        ],
+        [
+          -52.67,
+          47.58
+        ],
+        [
+          -52.735,
+          47.58
+        ],
+        [
+          -52.735,
+          47.548
+        ],
+        [
+          -52.67,
+          47.548
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -52.735,
+    47.548,
+    -52.67,
+    47.58
+  ],
+  "properties": {
+    "title": "Lidar terrain and surface models, 2 m, CGVD2013",
+    "processing:software": {
+      "harbour-twin": "0.1.0"
+    },
+    "processing:lineage": "NRCan HRDEM 1 m mosaic COGs, windowed read via NRCan STAC, average (DTM) / max (DSM) resampling",
+    "proj:code": "EPSG:3761",
+    "proj:shape": [
+      1833,
+      2485
+    ],
+    "proj:transform": [
+      2.0,
+      0.0,
+      369450.0,
+      0.0,
+      -2.0,
+      5271080.0
+    ],
+    "vertical_datum": "CGVD2013 (EPSG:6647)",
+    "source_items": [
+      "11_4-mosaic-1m"
+    ],
+    "qc:gates": {
+      "Copernicus GLO-30 vs lidar DSM": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": false
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": true
+        }
+      ],
+      "Copernicus GLO-30 vs lidar DTM, open ground": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": true
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": true
+        }
+      ],
+      "NRCan MRDEM-30 DTM vs lidar DTM": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": true
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": true
+        }
+      ],
+      "Datum error demo: GLO-30 heights used as ellipsoidal": [
+        {
+          "spec": "Copernicus DEM GLO-30 spec",
+          "pass": false
+        },
+        {
+          "spec": "DTED Level 2 (MIL-PRF-89020B)",
+          "pass": false
+        }
+      ]
+    },
+    "datetime": "2026-10-22T00:08:56.966599Z"
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: St. John's Harbour, NL"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: St. John's Harbour, NL"
+    }
+  ],
+  "assets": {
+    "dtm_cgvd2013": {
+      "href": "../../dtm_cgvd2013.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "DTM",
+      "file:size": 13426003,
+      "file:checksum": "1220f2ba353cb0d842f04d4126197b4ea17edc2f9f82d545214c7754ba2908261675",
+      "roles": [
+        "data"
+      ]
+    },
+    "dsm_cgvd2013": {
+      "href": "../../dsm_cgvd2013.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "DSM",
+      "file:size": 14389256,
+      "file:checksum": "1220089bac845317aff1e5b6eef3cb019400f48d3c224c75d2a1e4caf22e4e23ef1c",
+      "roles": [
+        "data"
+      ]
+    },
+    "ndsm": {
+      "href": "../../ndsm.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "Normalized DSM",
+      "file:size": 16629838,
+      "file:checksum": "122098a23a92b386c696ca835413bad24ffc20fda73c041a6f1ffa0d85c9aaa62cc9",
+      "roles": [
+        "data"
+      ]
+    },
+    "qc": {
+      "href": "../../QC_REPORT.md",
+      "type": "text/markdown",
+      "title": "QC report",
+      "file:size": 4911,
+      "file:checksum": "12209a9cb0fde684fef9de55bfd5bc01430a08c7829a56a23cff87e4047f7f5fcb61",
+      "roles": [
+        "metadata"
+      ]
+    }
+  }
+}

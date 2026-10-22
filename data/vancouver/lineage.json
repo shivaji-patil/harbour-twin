@@ -48,5 +48,33 @@
       "OpenStreetMap": -3.98
     },
     "tiles": 69
+  },
+  "sar": {
+    "scene": "S1D_IW_GRDH_1SDV_20261010T142042_20261010T142107_004954_009582_rtc",
+    "time": "2026-10-10T14:20:55Z",
+    "platform": "sentinel-1d",
+    "orbit_state": "descending",
+    "polarisations": [
+      "VV",
+      "VH"
+    ],
+    "relative_orbit": 13,
+    "source": "Sentinel-1 RTC (gamma0), sentinel-1-rtc on Microsoft Planetary Computer",
+    "ais_coverage": false,
+    "detections": 77,
+    "by_status": {
+      "no-ais": 77
+    },
+    "ais_on_open_water": 0,
+    "ais_not_seen": 0,
+    "params": {
+      "k_sigma": 5.0,
+      "guard_m": 310.0,
+      "background_m": 810.0,
+      "min_px": 3,
+      "shore_buffer_m": 40.0,
+      "gate_m": 300.0,
+      "r_over_v_s": 115.0
+    }
   }
 }

@@ -138,6 +138,40 @@ async function weather(lon, lat) {
   }
 }
 
+// ---------------------------------------------------------------- SAR × AIS
+const SAR_STATUS = {
+  ais: ["#3ecf8e", "Matched to AIS"],
+  dark: ["#ff4d4f", "No AIS: dark-vessel candidate"],
+  "no-ais": ["#f5b041", "Detected (no AIS at overpass)"],
+};
+
+function sarEntities(sar, seaHeight) {
+  const ds = new Cesium.CustomDataSource("sar");
+  for (const t of sar.targets) {
+    const [color, label] = SAR_STATUS[t.status];
+    ds.entities.add({
+      name: t.name || (t.status === "ais" ? `MMSI ${t.mmsi}` : "SAR target"),
+      // On the sea surface (the geoid, as the terrain has it). Clamped points with a fully
+      // transparent fill are dropped by Cesium at close range, so: fixed height, faint fill.
+      position: Cesium.Cartesian3.fromDegrees(t.lon, t.lat, seaHeight),
+      point: { pixelSize: 12, color: Cesium.Color.fromCssColorString(color).withAlpha(0.25),
+        outlineColor: Cesium.Color.fromCssColorString(color), outlineWidth: 3, disableDepthTestDistance: 5e4 },
+      description: `<table><tr><td>Status</td><td>${label}</td></tr>` +
+        (t.mmsi ? `<tr><td>MMSI</td><td>${t.mmsi}</td></tr><tr><td>AIS offset</td><td>${fmt(t.match_m, 0)} m</td></tr>` : "") +
+        `<tr><td>Peak ${sar.polarisations?.[1] ?? "cross-pol"}</td><td>${fmt(t.peak_cross_db, 1)} dB</td></tr><tr><td>Size</td><td>${t.n_px} px (10 m)</td></tr>` +
+        `<tr><td>Scene</td><td>${sar.time.slice(0, 16).replace("T", " ")} UTC</td></tr></table>`,
+    });
+  }
+  ds.show = false;
+  return ds;
+}
+
+// Opening views; other AOIs look north across the core area from its southern edge.
+const VIEWS = {
+  vancouver: { lon: -123.128, lat: 49.262, h: 900, heading: 12, pitch: -22 }, // False Creek, north over downtown
+  stjohns: { lon: -52.722, lat: 47.548, h: 750, heading: 45, pitch: -22 },    // west end, east up the harbour to the Narrows
+};
+
 // ---------------------------------------------------------------- info panel
 function showInfo(title, rows, note) {
   $("info-body").innerHTML = `<h3>${title}</h3><table>${rows
@@ -147,10 +181,14 @@ function showInfo(title, rows, note) {
 
 // ---------------------------------------------------------------- main
 async function main() {
-  const [terrainMeta, s2, tide, summary, qc] = await Promise.all([
+  const [terrainMeta, s2, tide, summary, qc, sar] = await Promise.all([
     getJSON("terrain.json"), getJSON("sentinel2.json"), getJSON("tide.json").catch(() => null),
-    getJSON("buildings_summary.json"), getJSON("qc_report.json").catch(() => null),
+    getJSON("buildings_summary.json"), getJSON("qc_report.json").catch(() => null), getJSON("sar.json").catch(() => null),
   ]);
+  if (qc?.aoi) {
+    $("aoi-name").textContent = qc.aoi.split(",")[0].replace(/ Harbour$/, "");
+    document.title = `Harbour Twin · ${$("aoi-name").textContent}`;
+  }
   const g = terrainMeta.grids;
   const [core, context, fill, ground] = await Promise.all([
     getI16(g.core.file), getI16(g.context.file), getI16("flood_level_core.bin"), getI16("ground_cgvd2013_core.bin"),
@@ -224,9 +262,42 @@ async function main() {
   }
   $("lyr-ais").onchange = (e) => ais && (ais.show = e.target.checked);
 
+  // SAR ship detections (Sentinel-1) and their AIS cross-check
+  if (sar) {
+    const sarDs = sarEntities(sar, terrainMeta.geoid_egm2008_to_wgs84);
+    await viewer.dataSources.add(sarDs);
+    const sarLayer = viewer.imageryLayers.addImageryProvider(await Cesium.SingleTileImageryProvider.fromUrl(
+      DATA + sar.image.file, { rectangle: Cesium.Rectangle.fromDegrees(sar.image.west, sar.image.south, sar.image.east, sar.image.north),
+        credit: "Contains modified Copernicus Sentinel-1 data" }));
+    sarLayer.show = false;
+    sarLayer.alpha = 0.85;
+    const sceneTime = Cesium.JulianDate.fromIso8601(sar.time);
+    $("sar-date").textContent = `Sentinel-1, ${sar.time.slice(0, 16).replace("T", " ")} UTC`;
+    $("lyr-sar").onchange = (e) => {
+      sarDs.show = sarLayer.show = e.target.checked;
+      $("sar-section").hidden = !e.target.checked;
+      if (e.target.checked && sar.ais_coverage) { // line vessels up with the radar snapshot
+        viewer.clock.currentTime = sceneTime.clone();
+        viewer.clock.shouldAnimate = false;
+      }
+    };
+    const n = sar.by_status;
+    $("sar-legend").innerHTML = Object.entries(SAR_STATUS).filter(([k]) => n[k])
+      .map(([k, [c, label]]) => `<span><i style="background:${c}"></i>${label} ${n[k]}</span>`).join("");
+    const next = sar.next_passes?.[0];
+    $("sar-note").textContent = (sar.ais_coverage
+      ? `${n.ais ?? 0} of ${sar.detections} radar targets match an AIS position; ${sar.ais_not_seen} AIS vessels on open water were not seen (usually small craft). `
+      : "The AIS capture does not cover this overpass, so targets are shown without the cross-check. ") +
+      "Candidates are for review, not findings: small boats without AIS and SAR artefacts also appear." +
+      (next ? ` Next overpass: ${next.time.slice(0, 16).replace("T", " ")} UTC.` : "");
+  } else {
+    $("lyr-sar").disabled = true;
+    $("sar-date").textContent = "not built for this AOI";
+  }
+
   // ---------------- flood planner
   let mode = "height";
-  let level = parseFloat($("level").value);
+  let level = tide?.levels?.HRWL?.cgvd2013_m ?? parseFloat($("level").value); // open on this station's record high
   let floodLayer = null, pending = null;
   const rect = Cesium.Rectangle.fromDegrees(g.core.west, g.core.south, g.core.east, g.core.north);
   const cellArea = ((g.core.east - g.core.west) / g.core.width) * 111320 * Math.cos(Cesium.Math.toRadians((g.core.north + g.core.south) / 2)) *
@@ -345,10 +416,10 @@ async function main() {
 
   weather((g.core.west + g.core.east) / 2, (g.core.south + g.core.north) / 2);
 
-  // Opening view: from False Creek looking north over downtown to the North Shore mountains
+  const v = VIEWS[AOI] ?? { lon: (g.core.west + g.core.east) / 2, lat: g.core.south, h: 900, heading: 0, pitch: -22 };
   viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(-123.128, 49.262, 900),
-    orientation: { heading: Cesium.Math.toRadians(12), pitch: Cesium.Math.toRadians(-22), roll: 0 },
+    destination: Cesium.Cartesian3.fromDegrees(v.lon, v.lat, v.h),
+    orientation: { heading: Cesium.Math.toRadians(v.heading), pitch: Cesium.Math.toRadians(v.pitch), roll: 0 },
   });
   window.twin = { viewer, tileset, ais, setLevel }; // handy for debugging in the console
 }

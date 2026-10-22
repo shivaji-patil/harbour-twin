@@ -267,8 +267,9 @@ def overture_water(release: str, bbox) -> gpd.GeoDataFrame:
     return gdf
 
 
-def overture_marine_structures(release: str, bbox, line_buffer_m: float = 3.0) -> gpd.GeoDataFrame:
-    """Piers, breakwaters and bridges (Overture base/infrastructure): solid ground inside water polygons."""
+def overture_marine_structures(release: str, bbox, line_buffer_m: float = 3.0,
+                               classes=("pier", "breakwater", "quay", "dock")) -> gpd.GeoDataFrame:
+    """Piers, breakwaters, quays and docks (Overture base/infrastructure): solid ground inside water polygons."""
     w, s, e, n = bbox
     files = overture_files(release, "base", "infrastructure", bbox)
     con = duckdb.connect()
@@ -276,7 +277,7 @@ def overture_marine_structures(release: str, bbox, line_buffer_m: float = 3.0) -
     df = con.execute(f"""
         SELECT subtype, class, geometry AS geom FROM read_parquet({files})
         WHERE bbox.xmin < {e} AND bbox.xmax > {w} AND bbox.ymin < {n} AND bbox.ymax > {s}
-          AND class IN ('pier', 'breakwater', 'quay', 'dock')
+          AND class IN ({', '.join(repr(c) for c in classes)})
     """).df()
     gdf = gpd.GeoDataFrame(df.drop(columns="geom"), geometry=[wkb.loads(bytes(g)) for g in df.geom], crs="EPSG:4326")
     # Pier centre-lines become thin polygons; buffer in metres, in a local UTM zone.

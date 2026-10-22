@@ -102,6 +102,19 @@ def build(aoi: AOI) -> dict:
                                         ["data"], "Positions (GeoParquet)"))
         cat.add_item(a)
 
+    if (root / "sar_detections.parquet").exists() and "sar" in lineage:
+        s = lineage["sar"]
+        d = item("sar-ship-detections", "Sentinel-1 ship detections cross-checked against AIS", bbox=aoi.ais_bbox)
+        d.datetime = datetime.fromisoformat(s["time"].replace("Z", "+00:00"))
+        d.properties.update({k: s[k] for k in ("scene", "platform", "orbit_state", "polarisations", "ais_coverage",
+                                                "detections", "by_status", "ais_not_seen", "params") if k in s})
+        d.properties["processing:lineage"] = (f"{s['source']}; two-parameter CFAR on cross-pol dB over Overture/OSM "
+                                              "open water; greedy AIS match with a speed-dependent gate")
+        d.properties["source_items"] = [s["scene"]]
+        d.add_asset("detections", _asset(root / "sar_detections.parquet", root, "application/vnd.apache.parquet",
+                                         ["data"], "Detections (GeoParquet)"))
+        cat.add_item(d)
+
     cat.normalize_hrefs(str(root / "stac"))
     for it in cat.get_items():  # asset paths are relative to data/<aoi>/; items sit two levels down
         for a in it.assets.values():

@@ -1,0 +1,63 @@
+{
+  "dted": [
+    {
+      "file": "dted/w053/n47.dt2",
+      "cell": [
+        -53,
+        47
+      ],
+      "posting_arcsec": [
+        1,
+        1
+      ],
+      "shape": [
+        3601,
+        3601
+      ],
+      "vertical_datum": "EGM96",
+      "source": [
+        "Copernicus_DSM_COG_10_N48_00_W053_00_DEM",
+        "Copernicus_DSM_COG_10_N47_00_W053_00_DEM",
+        "Copernicus_DSM_COG_10_N46_00_W053_00_DEM"
+      ],
+      "voids_filled": 3601,
+      "min_m": -4,
+      "max_m": 294,
+      "header": {
+        "DTED_VerticalAccuracy_UHL": "0004",
+        "DTED_VerticalAccuracy_ACC": "0004",
+        "DTED_SecurityCode_UHL": "U",
+        "DTED_SecurityCode_DSI": "U",
+        "DTED_UniqueRef_UHL": "",
+        "DTED_UniqueRef_DSI": "000000000000000",
+        "DTED_DataEdition": "01",
+        "DTED_MatchMergeVersion": "A",
+        "DTED_MaintenanceDate": "0000",
+        "DTED_MatchMergeDate": "0000",
+        "DTED_MaintenanceDescription": "0000",
+        "DTED_Producer": "HRBRTWIN",
+        "DTED_VerticalDatum": "MSL",
+        "DTED_HorizontalDatum": "WGS84",
+        "DTED_DigitizingSystem": "COPDEMGLO30",
+        "DTED_CompilationDate": "2610",
+        "DTED_HorizontalAccuracy": "NA",
+        "DTED_RelHorizontalAccuracy": "NA",
+        "DTED_RelVerticalAccuracy": "NA",
+        "DTED_OriginLatitude": "0470000N",
+        "DTED_OriginLongitude": "0530000W",
+        "DTED_NimaDesignator": "DTED2",
+        "DTED_PartialCellIndicator": "00",
+        "DTED_SecurityControl": "",
+        "DTED_SecurityHandling": ""
+      }
+    }
+  ],
+  "geopackage": {
+    "file": "stjohns_offline.gpkg",
+    "layers": [
+      "elevation_egm96",
+      "buildings"
+    ],
+    "size_mb": 5.7
+  }
+}

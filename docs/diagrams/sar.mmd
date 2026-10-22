@@ -1,0 +1,16 @@
+flowchart LR
+  A["AIS capture<br/>ais_positions.parquet"] --> PICK{"Sentinel-1 scene<br/>inside AIS window?"}
+  STACS["Planetary Computer STAC<br/>sentinel-1-rtc"] --> PICK
+  PICK -- yes --> READ
+  PICK -- "no: latest scene" --> READ["Read co-pol + cross-pol<br/>gamma0, 10 m UTM grid<br/>(all slices of the pass)"]
+  OVW["Overture water − piers − bridges<br/>shrunk 40 m"] --> MASK["Open-water mask"]
+  READ --> CF["Two-parameter CFAR<br/>cross-pol dB, k = 5<br/>310 m guard / 810 m ring"]
+  MASK --> CF
+  CF --> CL["Merge fragments &lt; 100 m<br/>drop &lt; 3 px<br/>point at brightest pixel"]
+  A --> INT["AIS position at overpass<br/>interpolate · hold anchored"]
+  CL --> M{"Greedy 1:1 match<br/>gate = 300 m + v·(R/V + age)"}
+  INT --> M
+  M -- matched --> G["Matched to AIS"]
+  M -- "SAR only" --> DK["Dark-vessel candidate<br/>(for review)"]
+  M -- "AIS only" --> UN["AIS not seen<br/>(usually small craft)"]
+  G & DK & UN --> OUT["sar_detections.parquet · sar.json<br/>STAC item · viewer layer"]

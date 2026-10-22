@@ -89,6 +89,17 @@ def shift_at(src: str, dst: str, lon, lat) -> np.ndarray:
     return h
 
 
+def nad83csrs_to_cgvd2013(lon: float, lat: float, h: float) -> float:
+    """NAD83(CSRS) ellipsoidal height to CGVD2013 (CGG2013a geoid, same frame, no Helmert)."""
+    p = ("+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad "
+         f"+step +inv +proj=vgridshift +grids={GEOID_GRIDS['CGVD2013']} +multiplier=1 "
+         "+step +proj=unitconvert +xy_in=rad +xy_out=deg")
+    out = pyproj.Transformer.from_pipeline(p).transform(lon, lat, h, errcheck=True)[2]
+    if not np.isfinite(out):
+        raise RuntimeError("CGG2013a geoid grid did not cover the point")
+    return float(out)
+
+
 def shift_grid(src: str, dst: str, crs, transform: Affine, shape: tuple[int, int], step: int = 16) -> np.ndarray:
     """Vertical shift raster on a (possibly projected) grid.
 

@@ -23,6 +23,7 @@
       <label><input type="checkbox" id="lyr-buildings" checked> Buildings <small>3D Tiles 1.1</small></label>
       <label><input type="checkbox" id="lyr-ais" checked> Vessels <small>AIS replay</small></label>
       <label><input type="checkbox" id="lyr-s2" checked> Sentinel-2 imagery <small id="s2-date"></small></label>
+      <label><input type="checkbox" id="lyr-sar"> SAR ship detections <small id="sar-date">Sentinel-1</small></label>
       <label><input type="checkbox" id="lyr-radar"> Weather radar <small>ECCC GeoMet, live</small></label>
     </section>
 
@@ -58,6 +59,11 @@
       <p class="hint" id="ais-note"></p>
     </section>
 
+    <section id="sar-section" hidden>
+      <h2>SAR × AIS cross-check</h2>
+      <div id="sar-legend" class="legend"></div>
+      <p class="hint" id="sar-note"></p>
+    </section>
     <section>
       <h2>Weather now</h2>
       <p id="wx" class="wx">Loading…</p>
@@ -84,9 +90,10 @@
       <li><b>QC</b> every DEM against lidar (bias, RMSE, NMAD, LE90, by slope) and gate it against product specs.</li>
       <li><b>Measure building heights</b> from lidar (DSM − DTM), flag disagreements with Overture, and write OGC 3D Tiles 1.1 with per-building metadata.</li>
       <li><b>Integrate live feeds</b>: AIS from aisstream.io, tides from CHS IWLS, weather from ECCC and Open-Meteo.</li>
+      <li><b>Cross-check AIS against radar</b>: CFAR ship detection on Sentinel-1 backscatter, matched to AIS at the overpass time. Ships SAR sees but AIS does not report are dark-vessel candidates for review.</li>
       <li><b>Package for offline use</b>: DTED Level 2 and a GeoPackage, all published as a STAC catalog.</li>
     </ol>
-    <p class="hint">Data: NRCan (OGL-Canada), Copernicus DEM © DLR/Airbus, Sentinel-2 (ESA Copernicus), Overture Maps (ODbL/CDLA), OpenStreetMap contributors, aisstream.io, DFO-CHS, ECCC, Open-Meteo, CARTO.</p>
+    <p class="hint">Data: NRCan (OGL-Canada), Copernicus DEM © DLR/Airbus, Sentinel-1 and Sentinel-2 (ESA Copernicus; Sentinel-1 RTC via Microsoft Planetary Computer), Overture Maps (ODbL/CDLA), OpenStreetMap contributors, aisstream.io, DFO-CHS, ECCC, Open-Meteo, CARTO.</p>
     <form method="dialog"><button>Close</button></form>
   </dialog>
 

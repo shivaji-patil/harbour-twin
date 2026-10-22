@@ -1,0 +1,102 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/processing/v1.2.0/schema.json"
+  ],
+  "id": "sar-ship-detections",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -122.9,
+          49.2
+        ],
+        [
+          -122.9,
+          49.36
+        ],
+        [
+          -123.4,
+          49.36
+        ],
+        [
+          -123.4,
+          49.2
+        ],
+        [
+          -122.9,
+          49.2
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -123.4,
+    49.2,
+    -122.9,
+    49.36
+  ],
+  "properties": {
+    "title": "Sentinel-1 ship detections cross-checked against AIS",
+    "processing:software": {
+      "harbour-twin": "0.1.0"
+    },
+    "processing:lineage": "Sentinel-1 RTC (gamma0), sentinel-1-rtc on Microsoft Planetary Computer; two-parameter CFAR on cross-pol dB over Overture/OSM open water; greedy AIS match with a speed-dependent gate",
+    "scene": "S1D_IW_GRDH_1SDV_20261010T142042_20261010T142107_004954_009582_rtc",
+    "platform": "sentinel-1d",
+    "orbit_state": "descending",
+    "polarisations": [
+      "VV",
+      "VH"
+    ],
+    "ais_coverage": false,
+    "detections": 77,
+    "by_status": {
+      "no-ais": 77
+    },
+    "ais_not_seen": 0,
+    "params": {
+      "k_sigma": 5.0,
+      "guard_m": 310.0,
+      "background_m": 810.0,
+      "min_px": 3,
+      "shore_buffer_m": 40.0,
+      "gate_m": 300.0,
+      "r_over_v_s": 115.0
+    },
+    "source_items": [
+      "S1D_IW_GRDH_1SDV_20261010T142042_20261010T142107_004954_009582_rtc"
+    ],
+    "datetime": "2026-10-10T14:20:55Z"
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: Vancouver Harbour, BC"
+    }
+  ],
+  "assets": {
+    "detections": {
+      "href": "../../sar_detections.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Detections (GeoParquet)",
+      "file:size": 14641,
+      "file:checksum": "12201a3afa699fc4dc4e7c127adef9bf8b0b45ea086b3268b85bbdc5da9ab8124de4",
+      "roles": [
+        "data"
+      ]
+    }
+  }
+}

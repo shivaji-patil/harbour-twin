@@ -1,0 +1,108 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/processing/v1.2.0/schema.json"
+  ],
+  "id": "buildings-3d",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -52.67,
+          47.548
+        ],
+        [
+          -52.67,
+          47.58
+        ],
+        [
+          -52.735,
+          47.58
+        ],
+        [
+          -52.735,
+          47.548
+        ],
+        [
+          -52.67,
+          47.548
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -52.735,
+    47.548,
+    -52.67,
+    47.58
+  ],
+  "properties": {
+    "title": "Buildings with lidar-measured heights: GeoParquet + 3D Tiles 1.1",
+    "processing:software": {
+      "harbour-twin": "0.1.0"
+    },
+    "processing:lineage": "Overture Maps 2026-10-21.0 footprints (GeoParquet, bbox-filtered in DuckDB); height = p90(DSM) - p10(ground ring DTM)",
+    "buildings": 7308,
+    "by_height_source": {
+      "lidar": 7209,
+      "default": 98,
+      "overture": 1
+    },
+    "height_flags": 88,
+    "overture_minus_lidar_height": {
+      "n": 2971,
+      "bias_m": -4.318783283233643,
+      "std_m": 2.7423958778381348,
+      "rmse_m": 5.11591911315918,
+      "mae_m": 4.34771203994751,
+      "nmad_m": 2.1520566940307617,
+      "le90_m": 7.479014873504639,
+      "le95_m": 8.648916244506836
+    },
+    "overture_minus_lidar_by_source": {
+      "Microsoft ML Buildings": -3.79,
+      "OpenStreetMap": -3.95
+    },
+    "tiles": 50,
+    "datetime": "2026-10-22T00:08:56.966599Z"
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: St. John's Harbour, NL"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Harbour twin: St. John's Harbour, NL"
+    }
+  ],
+  "assets": {
+    "geoparquet": {
+      "href": "../../buildings.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Buildings (GeoParquet)",
+      "file:size": 1217318,
+      "file:checksum": "1220e0340a0272c28c714d5dcb3d9af22fa90d4dee51d44a4746b6f5e97534216090",
+      "roles": [
+        "data"
+      ]
+    },
+    "3dtiles": {
+      "href": "../../../../web/data/stjohns/buildings/tileset.json",
+      "type": "application/json",
+      "title": "OGC 3D Tiles 1.1 tileset (EXT_mesh_features + EXT_structural_metadata)",
+      "roles": [
+        "data",
+        "visual"
+      ]
+    }
+  }
+}

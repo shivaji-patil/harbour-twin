@@ -6,9 +6,9 @@ import json
 import logging
 import time
 
-from . import ais, catalog, config, package, pipeline, tides
+from . import ais, catalog, config, package, pipeline, sar, tides
 
-STEPS = ["lidar", "qc", "terrain", "imagery", "buildings", "ais", "tides", "package", "catalog"]
+STEPS = ["lidar", "qc", "terrain", "imagery", "buildings", "ais", "sar", "tides", "package", "catalog"]
 
 
 def _ais_window(aoi):
@@ -26,8 +26,9 @@ def _ais_window(aoi):
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="twin", description=__doc__)
     ap.add_argument("aoi", help="config/<aoi>.yaml")
-    ap.add_argument("steps", nargs="+", help=f"any of {STEPS}, 'all', or 'record'")
+    ap.add_argument("steps", nargs="+", help=f"any of {STEPS}, 'all', 'record' or 'passes'")
     ap.add_argument("--minutes", type=float, default=120, help="AIS capture length for 'record'")
+    ap.add_argument("--scene", help="Sentinel-1 RTC item id for 'sar' (default: best match to the AIS capture)")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     aoi = config.load(a.aoi)
@@ -40,10 +41,12 @@ def main(argv=None):
         "imagery": lambda: pipeline.imagery(aoi),
         "buildings": lambda: pipeline.buildings(aoi),
         "ais": lambda: ais.build(raw, aoi.data_dir, aoi.web_dir) if raw.exists() else None,
+        "sar": lambda: sar.build(aoi, a.scene),
         "tides": lambda: tides.build(aoi.tide_station, *_ais_window(aoi), aoi.web_dir) if aoi.tide_station else None,
         "package": lambda: package.run(aoi),
         "catalog": lambda: catalog.build(aoi),
         "record": lambda: ais.record(aoi.ais_bbox, raw, a.minutes),
+        "passes": lambda: {"next_sentinel1_passes": sar.next_passes(aoi.ais_bbox)},
     }
     steps = STEPS if a.steps == ["all"] else a.steps
     for s in steps:

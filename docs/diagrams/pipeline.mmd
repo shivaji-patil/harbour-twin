@@ -1,0 +1,21 @@
+flowchart LR
+  lidar["<b>lidar</b><br/>NRCan HRDEM 1 m<br/>→ DTM · DSM · nDSM COGs"]
+  qc["<b>qc</b><br/>GLO-30 · MRDEM-30 vs lidar<br/>→ QC report · gates"]
+  terrain["<b>terrain</b><br/>lidar · GLO-30 · Overture water<br/>→ heightmaps · flood levels"]
+  imagery["<b>imagery</b><br/>Sentinel-2 L2A<br/>→ true-colour drape"]
+  buildings["<b>buildings</b><br/>Overture footprints<br/>→ GeoParquet · 3D Tiles 1.1"]
+  record["<b>record</b><br/>aisstream.io<br/>→ raw JSONL"]
+  ais["<b>ais</b><br/>clean · split tracks<br/>→ GeoParquet · CZML"]
+  sar["<b>sar</b><br/>Sentinel-1 RTC<br/>→ detections × AIS"]
+  tides["<b>tides</b><br/>CHS IWLS<br/>→ levels · series (CGVD2013)"]
+  package["<b>package</b><br/>GLO-30 → EGM96<br/>→ DTED2 · GeoPackage"]
+  catalog["<b>catalog</b><br/>reads every product above<br/>→ static STAC + lineage"]
+  lidar -- "DTM · DSM" --> buildings
+  terrain -- "flood level grid" --> buildings
+  record --> ais
+  ais -- "positions" --> sar
+  ais -- "replay window" --> tides
+  qc -- "measured LE90" --> package
+  buildings --> package
+  ais -- tracks --> package
+  package --> catalog

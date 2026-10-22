@@ -1,0 +1,18 @@
+flowchart TB
+  CLI["cli.py<br/>argument parsing, step runner"] --> CFG["config.py<br/>AOI from config/&lt;aoi&gt;.yaml"]
+  CLI --> PIPE["pipeline.py<br/>lidar · qc · terrain · imagery · buildings"]
+  CLI --> AISM["ais.py<br/>record · clean · tracks · CZML"]
+  CLI --> SARM["sar.py<br/>scenes · CFAR · AIS match · passes"]
+  CLI --> TIDE["tides.py<br/>CHS levels → CGVD2013"]
+  CLI --> PKG["package.py<br/>DTED2 · GeoPackage"]
+  CLI --> CAT["catalog.py<br/>STAC items"]
+  PIPE --> SRC["sources.py<br/>STAC search · windowed COG reads · DuckDB GeoParquet"]
+  PIPE --> DAT["datum.py<br/>explicit PROJ vertical pipelines"]
+  PIPE --> QCM["qc.py<br/>bias · NMAD · LE90 · gates · report"]
+  PIPE --> FL["flood.py<br/>priority-flood"]
+  PIPE --> T3["tiles3d.py<br/>3D Tiles 1.1 writer"]
+  SARM --> SRC
+  PKG --> SRC
+  PKG --> DAT
+  TIDE --> DAT
+  T3 --> DAT

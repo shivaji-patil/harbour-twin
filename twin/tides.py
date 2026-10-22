@@ -11,6 +11,8 @@ import logging
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
+from . import datum
+
 log = logging.getLogger(__name__)
 API = "https://api-iwls.dfo-mpo.gc.ca/api/v1"
 LEVELS = ["MWL", "MHHW", "HHWLT", "HAT", "HRWL"]
@@ -25,10 +27,26 @@ def _iso(t: datetime) -> str:
     return t.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def chart_datum_in_cgvd2013(meta: dict) -> tuple[float, str]:
+    """Height of the station's chart datum in CGVD2013, and how it was obtained.
+
+    Most stations publish the CGVD2013 offset directly. Some (St. John's, 00905)
+    publish only CGVD28 and NAD83(CSRS) ellipsoidal offsets; there we go through
+    the CGG2013a geoid, which defines CGVD2013 on that ellipsoid.
+    """
+    offsets = {d["code"]: d["offset"] for d in meta.get("datums", [])}
+    if "CGVD2013" in offsets:
+        return offsets["CGVD2013"], "CHS station metadata (CGVD2013)"
+    if "NAD83_CSRS" in offsets:
+        h = datum.nad83csrs_to_cgvd2013(meta["longitude"], meta["latitude"], offsets["NAD83_CSRS"])
+        return round(h, 3), "CHS NAD83(CSRS) offset through the CGG2013a geoid"
+    raise ValueError(f"station publishes no CGVD2013 or NAD83(CSRS) offset: {sorted(offsets)}")
+
+
 def build(station_code: str, start: datetime, end: datetime, web_dir) -> dict:
     st = _get(f"{API}/stations?code={station_code}")[0]
     meta = _get(f"{API}/stations/{st['id']}/metadata")
-    offset = next(d["offset"] for d in meta["datums"] if d["code"] == "CGVD2013")
+    offset, offset_from = chart_datum_in_cgvd2013(meta)
     types = {h["id"]: h for h in _get(f"{API}/height-types")}
     levels = {}
     for h in meta.get("heights", []):
@@ -50,7 +68,7 @@ def build(station_code: str, start: datetime, end: datetime, web_dir) -> dict:
             break
     out = {"station": {"code": station_code, "name": meta["officialName"], "lon": meta["longitude"],
                        "lat": meta["latitude"]},
-           "chart_datum_to_cgvd2013_m": offset, "levels": levels, "series_kind": kind,
+           "chart_datum_to_cgvd2013_m": offset, "offset_from": offset_from, "levels": levels, "series_kind": kind,
            "series": sorted(series), "source": "Fisheries and Oceans Canada, CHS IWLS API"}
     (web_dir / "tide.json").write_text(json.dumps(out))
     log.info("tides %s: offset %.2f, %d levels, %d %s samples", station_code, offset, len(levels), len(series), kind)

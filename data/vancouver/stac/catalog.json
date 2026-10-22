@@ -29,6 +29,11 @@
       "rel": "item",
       "href": "./ais-tracks/ais-tracks.json",
       "type": "application/geo+json"
+    },
+    {
+      "rel": "item",
+      "href": "./sar-ship-detections/sar-ship-detections.json",
+      "type": "application/geo+json"
     }
   ],
   "title": "Harbour twin: Vancouver Harbour, BC"

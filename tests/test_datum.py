@@ -72,3 +72,15 @@ def test_shift_grid_matches_points():
 def test_same_datum_is_an_error():
     with pytest.raises(ValueError):
         datum.pipeline("EGM2008", "EGM2008")
+
+
+def test_chart_datum_from_ellipsoidal_offset():
+    """St. John's (CHS 00905) publishes CGVD28 and NAD83(CSRS) offsets but no CGVD2013 one."""
+    from twin import tides
+    meta = {"longitude": -52.7106, "latitude": 47.5671,
+            "datums": [{"code": "CGVD28", "offset": -0.84}, {"code": "NAD83_CSRS", "offset": 9.5}]}
+    h, how = tides.chart_datum_in_cgvd2013(meta)
+    assert "CGG2013a" in how
+    assert h == pytest.approx(-1.21, abs=0.02)       # 9.5 m ellipsoidal minus the 10.71 m CGG2013a geoid
+    assert abs(h - (-0.84)) < 0.5                     # CGVD2013 and CGVD28 differ by decimetres, not metres
+    assert tides.chart_datum_in_cgvd2013({"datums": [{"code": "CGVD2013", "offset": -2.88}]})[0] == -2.88
