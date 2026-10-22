@@ -81,6 +81,9 @@ def build(aoi: AOI) -> dict:
     if (root / "buildings.city.json").exists():
         b.add_asset("cityjson", _asset(root / "buildings.city.json", root, "application/city+json", ["data"],
                                        "CityJSON 2.0, LoD1 solids (UTM NAD83(CSRS) + CGVD2013)"))
+    if (root / "buildings.slpk").exists():
+        b.add_asset("i3s", _asset(root / "buildings.slpk", root, "application/octet-stream", ["data"],
+                                  "I3S scene layer package (3DObject, EGM96 heights) for ArcGIS"))
     cat.add_item(b)
 
     off = root / "offline" / "manifest.json"

@@ -1,4 +1,4 @@
-# OGC API (Features) over the twin's vector products, served by pygeoapi.
+# OGC API - Features and Tiles over the twin's vector products, served by pygeoapi.
 # Each collection reads one layer of data/<aoi>/features.gpkg (written by `twin <aoi> package`).
 server:
   bind:
@@ -57,6 +57,17 @@ resources:
           source: /data/vancouver/features.gpkg
         id_field: id
         layer: buildings
+      - type: tile  # OGC API - Tiles: vector tiles made by deploy/tiles.sh (tippecanoe)
+        name: MVT-tippecanoe
+        data: /data/vancouver/vtiles/buildings
+        options:
+          zoom:
+            min: 12
+            max: 16
+          schemes: [WebMercatorQuad]
+        format:
+          name: pbf
+          mimetype: application/vnd.mapbox-vector-tile
 
   vancouver-ais-tracks:
     type: collection
@@ -129,6 +140,17 @@ resources:
           source: /data/stjohns/features.gpkg
         id_field: id
         layer: buildings
+      - type: tile  # OGC API - Tiles: vector tiles made by deploy/tiles.sh (tippecanoe)
+        name: MVT-tippecanoe
+        data: /data/stjohns/vtiles/buildings
+        options:
+          zoom:
+            min: 12
+            max: 16
+          schemes: [WebMercatorQuad]
+        format:
+          name: pbf
+          mimetype: application/vnd.mapbox-vector-tile
 
   stjohns-sar-detections:
     type: collection

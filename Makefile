@@ -2,11 +2,15 @@ AOI ?= vancouver
 PY  ?= .venv/bin/python
 TWIN = .venv/bin/twin
 
-.PHONY: setup data record passes ais test validate serve image publish stack clean
+.PHONY: setup i3s-deps data record passes ais test validate serve image publish stack clean
 
-setup:            ## virtualenv + Python deps + glTF validator
+setup:            ## virtualenv + Python deps + glTF validator + I3S converter (then `make i3s-deps`)
 	python3 -m venv .venv && .venv/bin/pip install -q -e '.[dev]' jsonschema
 	cd tools && npm ci --ignore-scripts
+
+i3s-deps:         ## EGM96 geoid grid (GeographicLib, 5') for the I3S converter in export3d
+	mkdir -p tools/deps && curl -sfL -o tools/deps/egm96-5.zip https://sourceforge.net/projects/geographiclib/files/geoids-distrib/egm96-5.zip/download
+	$(PY) -c "import zipfile; z = zipfile.ZipFile('tools/deps/egm96-5.zip'); open('tools/deps/egm96-5.pgm', 'wb').write(z.read('geoids/egm96-5.pgm'))" && rm tools/deps/egm96-5.zip
 
 data:             ## rebuild every product for $(AOI) from upstream sources (~2 min)
 	$(TWIN) $(AOI) lidar qc terrain imagery buildings export3d ais sar tides package catalog

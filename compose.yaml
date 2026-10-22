@@ -1,7 +1,7 @@
 # Harbour Twin as a small cloud-native stack, locally:
 #   docker compose up --build
 #     http://localhost:8333/harbour-twin/web/index.html   viewer, served from object storage
-#     http://localhost:5000                               OGC API - Features (pygeoapi)
+#     http://localhost:5000                               OGC API - Features and Tiles (pygeoapi)
 #     http://localhost:8080                               STAC Browser over the catalog in object storage
 # Expects built products in data/ and web/data/ (`make data`, or the products/ folder).
 # The keys below are throwaway local credentials for the bundled object store, nothing else.
@@ -35,8 +35,17 @@ services:
       - ./web:/app/web:ro
     entrypoint: ["sh", "-c", "twin vancouver publish --to s3://harbour-twin && twin stjohns publish --to s3://harbour-twin"]
 
-  api:  # OGC API - Features over data/<aoi>/features.gpkg
+  tiles:  # building vector tiles (tippecanoe) for OGC API - Tiles, written to data/<aoi>/vtiles/
+    build: {context: ./deploy, dockerfile: tiles.Dockerfile}
+    image: harbour-twin-tiles
+    volumes:
+      - ./data:/data
+    command: ["vancouver", "stjohns"]
+
+  api:  # OGC API - Features and Tiles over data/<aoi>/
     image: geopython/pygeoapi:0.24.0
+    depends_on:
+      tiles: {condition: service_completed_successfully}
     ports: ["5000:80"]
     volumes:
       - ./deploy/pygeoapi.config.yml:/pygeoapi/local.config.yml:ro

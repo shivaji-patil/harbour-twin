@@ -46,3 +46,23 @@ def test_features_package_matches_sources():
             g = gpd.read_file(path, layer=name)
             assert len(g) == len(gpd.read_parquet(DATA / f"{name}.parquet"))
             assert g.feature_id.is_unique and g.crs.to_epsg() == 4326
+
+
+def test_api_config_matches_data_and_tiles():
+    """Every OGC API collection points at a layer that exists, and the tile settings match deploy/tiles.sh."""
+    import re
+    import yaml
+    root = config.ROOT
+    cfg = yaml.safe_load((root / "deploy" / "pygeoapi.config.yml").read_text())
+    script = (root / "deploy" / "tiles.sh").read_text()
+    zmin = int(re.search(r"--minimum-zoom=(\d+)", script).group(1))
+    zmax = int(re.search(r"--maximum-zoom=(\d+)", script).group(1))
+    for name, res in cfg["resources"].items():
+        for prov in res["providers"]:
+            if prov["type"] == "feature":
+                gpkg = root / "data" / Path(prov["data"]["source"]).relative_to("/data")
+                if gpkg.exists():
+                    assert prov["layer"] in dict(pyogrio.list_layers(gpkg)), (name, prov["layer"])
+            elif prov["type"] == "tile":
+                assert prov["data"].endswith("/vtiles/buildings"), name
+                assert (prov["options"]["zoom"]["min"], prov["options"]["zoom"]["max"]) == (zmin, zmax), name

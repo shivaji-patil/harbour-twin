@@ -7,6 +7,7 @@
     "validate": "node validate_glb.mjs ../web/data/vancouver/buildings/tiles"
   },
   "devDependencies": {
+    "@loaders.gl/tile-converter": "4.3.4",
     "gltf-validator": "2.0.0-dev.3.10"
   }
 }

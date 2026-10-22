@@ -26,6 +26,7 @@ TYPES = {
     ".czml": "application/json",
     ".bin": "application/octet-stream",
     ".dt2": "application/octet-stream",
+    ".slpk": "application/octet-stream",
     ".md": "text/markdown",
 }
 SKIP = {".aux.xml"}  # GDAL side-cars

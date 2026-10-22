@@ -104,7 +104,7 @@ def big_picture():
         b.append(f'<rect x="355" y="{y - 16}" width="290" height="34" rx="6" fill="{BG3}" stroke="{LINE}"/>')
         b.append(text(500, y + 1, s, FG, 12.5))
     outs = [("3D viewer in a browser", "city, ships, radar, floods", BLUE), ("Quality report", "pass / fail against specs", YELLOW),
-            ("Offline map files", "for devices without internet", BLUE), ("Catalogue + web APIs", "STAC, OGC API, CityJSON", BLUE)]
+            ("Offline map files", "for devices without internet", BLUE), ("Catalogue + web APIs", "STAC, OGC API, I3S, CityJSON", BLUE)]
     for i, (t, s, c) in enumerate(outs):
         y = 52 + i * 92
         b.append(box(750, y, 230, 62, t, s, c))
@@ -115,7 +115,7 @@ def big_picture():
 def run_flow():
     steps = [("1  Lidar", ["Ground and rooftop", "heights, 1 m detail"]), ("2  Quality check", ["Score satellite", "elevation vs lidar"]),
              ("3  Terrain + flood", ["3D ground and", "where water reaches"]), ("4  Satellite photo", ["Cloud-free summer", "colour image"]),
-             ("5  Buildings", ["Measured heights →", "3D Tiles + CityJSON"]), ("6  Ships (AIS)", ["Clean recorded", "tracks for replay"]),
+             ("5  Buildings", ["Measured heights →", "3D Tiles, I3S, CityJSON"]), ("6  Ships (AIS)", ["Clean recorded", "tracks for replay"]),
              ("7  Radar ships", ["Find ships in", "Sentinel-1, match AIS"]), ("8  Tides", ["Observed water", "level, same clock"]),
              ("9  Offline package", ["DTED + GeoPackage", "for field devices"]), ("10  Catalogue", ["Describe every", "product (STAC)"])]
     b = []
@@ -190,7 +190,7 @@ def folder_map():
         x = 15 + i * 197
         b.append(arrow([(500, 65), (500, 85), (x + 88, 85), (x + 88, 105)]))
         b.append(box(x, 105, 176, 56, t, s, c))
-    kids = [("twin/", "the pipeline (Python)"), ("web/", "the 3D viewer + its data"), ("tests/", "67 automated checks"),
+    kids = [("twin/", "the pipeline (Python)"), ("web/", "the 3D viewer + its data"), ("tests/", "70 automated checks"),
             ("docs/", "architecture, data, images"), ("config/", "one file per city"), ("data/", "reports, catalogue")]
     for i, (t, s) in enumerate(kids):
         x, y = 15 + (i % 3) * 240, 205 + (i // 3) * 64
@@ -307,7 +307,7 @@ and must pass published accuracy specifications before it is used.</li>
 <div class="card" style="--c:{ORANGE}"><b>77</b><span>ships found by satellite radar in one Vancouver pass, including the anchored freighters in English Bay</span></div>
 <div class="card" style="--c:{BLUE}"><b>347</b><span>vessels recorded live over 4 hours: 7,854 cleaned position reports</span></div>
 <div class="card" style="--c:{GREEN}"><b>98.7%</b><span>of 5,848 building heights measured by laser, not guessed</span></div>
-<div class="card" style="--c:{YELLOW}"><b>67</b><span>automated checks that must pass before results are published</span></div>
+<div class="card" style="--c:{YELLOW}"><b>70</b><span>automated checks that must pass before results are published</span></div>
 </div>
 </section>
 
@@ -388,10 +388,10 @@ data files unless it is served, which is what the first command does.</p></div>
 make setup        # installs Python packages and the 3D-model validator (about 30 s)
 make test         # the automated checks
 make validate     # checks every 3D building tile against the official standard''')}
-<p class="expect">Expect: <code>64 passed, 3 skipped</code>, then <code>{{"files":69,"errors":0,"warnings":0}}</code>.
+<p class="expect">Expect: <code>67 passed, 3 skipped</code>, then <code>{{"files":69,"errors":0,"warnings":0}}</code>.
 The 3 skipped checks need the large files. To include them, copy them in and run the checks again:</p>
 {code('''cp -r ../products/data/* data/
-make test         # now 67 passed
+make test         # now 70 passed
 make serve        # same viewer as path A, using the installed Python''')}</div>
 
 <div class="path" style="--c:{ORANGE}"><h3>C. Rebuild everything from the original sources</h3>
@@ -421,7 +421,7 @@ AIS ships the radar did not see. The viewer's SAR panel shows the same.</p>
 {code("docker compose up --build        # first run downloads the images (a few minutes)")}
 <p class="expect">Expect, once the publish step has exited: the viewer at
 <code>http://localhost:8333/harbour-twin/web/index.html</code>, served from object storage; the data as a web service
-(OGC API) at <code>http://localhost:5000</code>; and the catalogue at <code>http://localhost:8080</code>.
+and map tiles (OGC API) at <code>http://localhost:5000</code>; and the catalogue at <code>http://localhost:8080</code>.
 Stop with <code>Ctrl+C</code>, then <code>docker compose down</code>.</p></div>
 
 <h3>If something goes wrong</h3>
@@ -461,6 +461,7 @@ Stop with <code>Ctrl+C</code>, then <code>docker compose down</code>.</p></div>
 <dt>CityJSON</dt><dd>An open format for 3D city models (the JSON form of CityGML), read by city-planning tools. The buildings are exported to it as simple closed blocks.</dd>
 <dt>OGC API - Features</dt><dd>A standard web interface for map data: any GIS can ask it for "buildings in this box" or "flagged buildings" and get them back.</dd>
 <dt>Object storage</dt><dd>Cloud file storage such as Amazon S3. Publishing the products there lets anyone read them over the web without a special server.</dd>
+<dt>I3S</dt><dd>The 3D format ArcGIS uses for scene layers. The buildings are also delivered as an I3S package, checked down to individual roof heights.</dd>
 <dt>3D Tiles</dt><dd>An open standard for streaming 3D city models to a web browser.</dd>
 </dl>
 </section>
