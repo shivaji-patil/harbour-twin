@@ -323,7 +323,7 @@ Everything is read directly from the organisations that publish it; nothing is c
 {img("sar.jpg", "Radar view of English Bay with ships circled", "Satellite radar over English Bay. Ships show up as bright crosses; each ring is a ship the software found. One is selected (top right).")}
 {img("stjohns_flood.jpg", "St. John's harbour with flood risk colours", "St. John's harbour with the sea 1 m above its highest recorded level. Red buildings are reached by the water: 86 of 7,308.")}
 </div>
-<p>A 30-second tour is in the folder as <code>demo.mp4</code>.</p>
+<p><b>See it live, nothing to install:</b> <a href="https://harbour-twin.netlify.app">harbour-twin.netlify.app</a> (St. John's: <a href="https://harbour-twin.netlify.app/?aoi=stjohns">add ?aoi=stjohns</a>). A 30-second tour is in the folder as <code>demo.mp4</code>.</p>
 </section>
 
 <section id="run"><h2><span class="n">04</span>How a run works</h2>
@@ -481,7 +481,7 @@ Stop with <code>Ctrl+C</code>, then <code>docker compose down</code>.</p></div>
 <h1>Harbour <span>Twin</span></h1>
 <p class="lede">A 3D computer copy of a harbour, built only from free public data, that tracks ships, finds the ones that are not
 announcing themselves, plans for floods, and checks its own accuracy.</p>
-<p class="by">Shivaji Patil · shivaji@shivajipatil.com · October 2026 · Vancouver and St. John's, Canada</p>
+<p class="by">Shivaji Patil · shivaji@shivajipatil.com · October 2026 · Vancouver and St. John's, Canada · Live: <a href="https://harbour-twin.netlify.app" style="color:var(--blue)">harbour-twin.netlify.app</a></p>
 </div></header>
 <nav><div class="in">{nav}</div></nav>
 <main>{body}
