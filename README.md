@@ -7,6 +7,8 @@ It covers lidar-measured buildings as OGC 3D Tiles 1.1, datum-checked terrain, l
 
 ![Downtown Vancouver from False Creek: lidar buildings coloured by height, AIS vessels with 30-minute trails in Burrard Inlet, water level following the observed tide](docs/img/hero.jpg)
 
+**30-second demo:** [docs/img/demo.mp4](docs/img/demo.mp4) (also as [GIF](docs/img/demo.gif)): AIS replay, SAR targets, flood planner in Vancouver and St. John's.
+
 *The bundled replay is a 4-hour live capture (21 Oct 2026, 19:03–23:03 UTC): 347 vessels, 7,854 cleaned positions, 769 track segments. The flood planner can follow the CHS-observed tide on the same clock.*
 
 ## What it does
